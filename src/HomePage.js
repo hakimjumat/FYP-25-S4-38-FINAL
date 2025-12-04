@@ -10,31 +10,57 @@ import {
 
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
-function HomePage(){
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
-    useEffect(() => {
-        console.log("Entering Homepage");
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          setUser(firebaseUser || null);
-        });
-        return () => unsubscribe();
-      }, []);
+function HomePage() {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  cost[(studentData, setStudentData)] = useState(null); // store backend data here
 
-    const handleLogout = async () => {
-        await signOut(auth);
-        navigate("/");
-    };
+  useEffect(() => {
+    console.log("Entering Homepage");
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser || null);
 
-    return(
-        <div className="page">
+      // if user is logged in, fetch their data from backed
+      if (firebaseUser) {
+        try {
+          //1. Get the secure Access Token from Firebase
+          const token = await firebaseUser.getIdToken();
+
+          //2. Call node.js backend
+          const response = await fetch(
+            "http://localhost:5000/api/student-profile",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // send the token to the backend
+              },
+            }
+          );
+
+          // 3. save the data
+          const data = await response.json();
+          setStudentData(data);
+        } catch (error) {
+          console.error("Error fetching student data:", error);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
+
+  return (
+    <div className="page">
       {/* TOP NAVBAR */}
       <header className="nav">
         <div className="nav-left">Website</div>
         <ul className="nav-menu">
-          <li>
-            Courses
-          </li>
+          <li>Courses</li>
           <li>About</li>
           <li>Services</li>
           <li>Contact</li>
@@ -57,13 +83,41 @@ function HomePage(){
               You are currently logged in as <strong>{user.email}</strong>.
             </p>
           )}
+
+          {/* DISPLAY BACKEND DATA HERE */}
+          {studentData && studentData.gamification && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "15px",
+                border: "1px solid #4CAF50",
+                borderRadius: "8px",
+                backgroundColor: "#f9fff9",
+              }}
+            >
+              <h3>🎓 Your Progress</h3>
+              <p>
+                <strong>Points:</strong> {studentData.gamification.points}
+              </p>
+              <p>
+                <strong>Level:</strong> {studentData.gamification.level}
+              </p>
+              <p>
+                <strong>Current Streak:</strong>{" "}
+                {studentData.gamification.streak} days 🔥
+              </p>
+              <p>
+                <strong>Badges:</strong>{" "}
+                {studentData.gamification.badges.join(", ")}
+              </p>
+            </div>
+          )}
         </section>
 
         {/* RIGHT LOGIN BOX */}
         <section className="hero-right">
           {!user ? (
-            <div className="login-card">
-            </div>
+            <div className="login-card"></div>
           ) : (
             <div className="login-card">
               <h2 className="login-title">Logged in</h2>
@@ -104,7 +158,7 @@ function HomePage(){
         </div>
       </footer>
     </div>
-    );
+  );
 }
 
 export default HomePage;
