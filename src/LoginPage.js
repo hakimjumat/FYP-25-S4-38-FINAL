@@ -9,7 +9,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate } from "react-router-dom";
 
 function LoginPage() {
   const [mode, setMode] = useState("login"); // 'login' or 'register'
@@ -44,34 +44,32 @@ function LoginPage() {
       return;
     }
     setLoading(true);
-    if (mode === "register"){
-        try{
-            await createUserWithEmailAndPassword(auth, email, password);
-            setEmail("");
-            setPassword("");
-        } catch(err){
-            const msg =
-            err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
-            setError(msg);
-        }
-        finally{
-            setLoading(false);
-        }
-    }
-    else{
-        try{
-            await signInWithEmailAndPassword(auth, email, password);
-            setEmail("");
-            setPassword("");
-        } catch(err){
-            const msg =
-            err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
-            setError(msg);
-        }
-        finally{
-            setLoading(false);
-            navigate("/HomePage");
-        }
+    if (mode === "register") {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        setEmail("");
+        setPassword("");
+      } catch (err) {
+        const msg =
+          err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // 5 December Fix
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        setEmail("");
+        setPassword("");
+        navigate("/HomePage");
+      } catch (err) {
+        const msg =
+          err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -137,11 +135,7 @@ function LoginPage() {
 
                 {error && <p className="login-error">⚠ {error}</p>}
 
-                <button
-                  type="submit"
-                  className="login-btn"
-                  disabled={loading}
-                >
+                <button type="submit" className="login-btn" disabled={loading}>
                   {loading
                     ? "Please wait..."
                     : mode === "login"
