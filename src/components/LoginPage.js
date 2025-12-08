@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  updateProfile,
 } from "firebase/auth";
 
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,8 @@ function LoginPage() {
   const [mode, setMode] = useState("login"); // 'login' or 'register'
   const [email, setEmail] = useState(""); // username / email
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,9 +48,19 @@ function LoginPage() {
     setLoading(true);
     if (mode === "register") {
       try {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const newUser = userCredential.user;
+        const userFullName = `${firstName} ${lastName}`;
+        
+        // Update the user's profile with the display name
+        await updateProfile(newUser, {
+          displayName: userFullName
+        });
         setEmail("");
         setPassword("");
+        setFirstName("");
+        setLastName("");
+        setMode("login");
       } catch (err) {
         const msg =
           err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
@@ -116,6 +129,26 @@ function LoginPage() {
               </h2>
 
               <form onSubmit={handleSubmit}>
+                 {mode === 'register' && (
+                <div className="register-name">
+                  <input
+                    type="text"
+                    className="register-input"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                  <input
+                    type="text"
+                    className="register-input"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
                 <input
                   type="text"
                   className="login-input"
