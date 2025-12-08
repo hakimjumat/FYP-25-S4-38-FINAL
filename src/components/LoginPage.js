@@ -188,7 +188,7 @@ function LoginPage() {
           ) : (
             <div className="login-card">
               <h2 className="login-title">Logged in</h2>
-              <p>You are logged in as {user.email}</p>
+              <p>You are logged in as {user.displayName}</p>
               <button className="login-btn" onClick={handleLogout}>
                 Logout
               </button>
