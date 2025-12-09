@@ -1,5 +1,5 @@
 /* PAGE LAYOUT */
-.page {
+.home-page {
   height: 100vh;
   max-width: 100vw;
   overflow: hidden;
@@ -10,22 +10,24 @@
 }
 
 /* NAVBAR */
-.nav {
-  width: 100%;
+.home-nav {
+  width: 95%;
   padding: 12px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ddd;
-  background-color: white;
+  background-color: rgb(0, 0, 0);
+  color: white;
 }
 
-.nav-left {
+.home-nav-left {
   font-size: 18px;
   font-weight: 600;
+  cursor: pointer;
 }
 
-.nav-menu {
+.home-nav-menu {
   list-style: none;
   display: flex;
   gap: 24px;
@@ -34,12 +36,33 @@
   margin-left: auto;
 }
 
-.nav-menu li {
+.home-nav-menu li {
   cursor: pointer;
   font-size: 13px;
+  position: relative;
+  transition: all 0.3s;
 }
 
-.nav-login-btn {
+.home-nav-menu li:hover {
+  color: #667eea;
+}
+
+.home-nav-menu li::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #667eea;
+  transition: width 0.3s;
+}
+
+.home-nav-menu li:hover::after {
+  width: 100%;
+}
+
+.home-nav-login-btn {
   margin-left: 20px;
   padding: 6px 14px;
   border-radius: 4px;
@@ -47,10 +70,15 @@
   background: #fff;
   cursor: pointer;
   font-size: 13px;
+  transition: 0.5s;
+}
+
+.home-nav-login-btn:hover {
+  background-color: grey;
 }
 
 /* MAIN HERO SECTION */
-.hero {
+.home-hero {
   flex: 1;
   display: flex;
   padding: 20px 40px;
@@ -59,28 +87,29 @@
 }
 
 /* LEFT TEXT AREA */
-.hero-left {
+.home-hero-left {
   width: 50%;
 }
 
-.hero-left h1 {
+.home-hero-left h1 {
   font-size: 26px;
   margin-bottom: 8px;
 }
 
-.hero-left p {
+.home-hero-left p {
   max-width: 360px;
   font-size: 13px;
   line-height: 1.4;
+  margin-bottom: 550px;
 }
 
-.logged-in-text {
+.home-logged-in-text {
   margin-top: 10px;
   font-size: 13px;
 }
 
 /* STUDENT DATA BOX */
-.progress-box {
+.home-progress-box {
   margin-top: 20px;
   padding: 15px;
   border: 1px solid #4caf50;
@@ -89,13 +118,13 @@
 }
 
 /* RIGHT LOGIN INFO BOX */
-.hero-right {
+.home-hero-right {
   width: 50%;
   display: flex;
   justify-content: center;
 }
 
-.login-card {
+.home-login-card {
   width: 280px;
   padding: 20px;
   background: #fff;
@@ -103,12 +132,12 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-.login-title {
+.home-login-title {
   margin-bottom: 16px;
   font-size: 18px;
 }
 
-.login-btn {
+.home-login-btn {
   width: 100%;
   padding: 8px;
   margin-top: 2px;
@@ -119,37 +148,38 @@
 }
 
 /* FOOTER */
-.footer {
+.home-footer {
   height: 80px;
   padding: 10px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid #ddd;
-  background-color: #f8f8f8;
+  background-color: #000000;
+  color: white;
 }
 
-.footer-left {
+.home-footer-left {
   max-width: 200px;
 }
 
-.footer-logo {
+.home-footer-logo {
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 4px;
 }
 
-.footer-columns {
+.home-footer-columns {
   display: flex;
   gap: 28px;
 }
 
-.footer-columns h4 {
+.home-footer-columns h4 {
   margin: 0 0 6px 0;
   font-size: 13px;
 }
 
-.footer-columns p {
+.home-footer-columns p {
   margin: 2px 0;
   font-size: 12px;
 }
