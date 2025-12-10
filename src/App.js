@@ -16,14 +16,14 @@ import {
 } from "react-router-dom";
 
 import LoginPage from "./components/LoginPage";
-import HomePage from "./components/HomePage";
+import HomePage, { NavBar, Footer} from "./components/HomePage";
 import RegisterPage from "./components/RegisterPage";
 
 function App() { 
   return( 
    <BrowserRouter>
+   <NavBar />
     <Routes>
-
       <Route
         exact
         path="/LoginPage"
@@ -44,8 +44,8 @@ function App() {
         path="*"
         element={<Navigate to="/" />}
        />
-
     </Routes>
+    <Footer />
    </BrowserRouter>
   );
 }
