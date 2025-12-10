@@ -14,39 +14,51 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
-
+import './CSS/App.css';
 import LoginPage from "./components/LoginPage";
 import HomePage, { NavBar, Footer} from "./components/HomePage";
 import RegisterPage from "./components/RegisterPage";
+import ProfilePage from "./components/ProfilePage";
 
 function App() { 
   return( 
-   <BrowserRouter>
-   <NavBar />
-    <Routes>
-      <Route
-        exact
-        path="/LoginPage"
-        element={<LoginPage />}
-      />
+    <div>
+      <BrowserRouter>
+        <div className="page-layout">
+          <NavBar />
+          <div className="content-wrap">
+              <Routes>
+                <Route
+                  exact
+                  path="/LoginPage"
+                  element={<LoginPage />}
+                />
 
-      <Route
-        path="/"
-        element={<HomePage />}
-      />
+                <Route
+                  path="/"
+                  element={<HomePage />}
+                />
 
-      <Route
-        path="/RegisterPage"
-        element={<RegisterPage />} 
-       />
+                <Route
+                  path="/RegisterPage"
+                  element={<RegisterPage />} 
+                />
 
-      <Route
-        path="*"
-        element={<Navigate to="/" />}
-       />
-    </Routes>
-    <Footer />
-   </BrowserRouter>
+                <Route
+                  path="/ProfilePage"
+                  element={<ProfilePage />} 
+                />
+
+                <Route
+                  path="*"
+                  element={<Navigate to="/" />}
+                />
+              </Routes>
+          </div>
+          <Footer />
+        </div>
+      </BrowserRouter>
+   </div>
   );
 }
 
