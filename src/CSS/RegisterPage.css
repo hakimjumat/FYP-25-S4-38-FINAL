@@ -86,3 +86,29 @@
 .back-home:hover {
   text-decoration: underline;
 }
+
+.have-acc-div {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.have-acc-div span {
+  display: inline;
+  margin-right: 5px;
+}
+
+.have-acc-link {
+  color: rgb(124, 147, 224);
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.have-acc-link:hover {
+  text-decoration: underline;
+}
+
+
+
+

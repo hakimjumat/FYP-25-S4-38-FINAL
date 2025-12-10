@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../CSS/RegisterPage.css";
 
@@ -75,6 +75,8 @@ function RegisterPage() {
             minLength={8}
             maxLength={127}
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           <label className="confirm-password">Confirm Password *</label>
@@ -94,6 +96,13 @@ function RegisterPage() {
               }
             }}
           />
+
+          <div className="have-acc-div">
+            <span>Already have an account?</span>
+            <Link to="/LoginPage" className="have-acc-link">
+              Login here
+            </Link>
+          </div>
 
           <button type="submit" className="register-button">Create Account</button>
         </form>
