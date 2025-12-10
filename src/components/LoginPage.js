@@ -1,30 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "../CSS/LoginPage.css";
 import { auth } from "../firebase";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-} from "firebase/auth";
-import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 function LoginPage() {
-  const [email, setEmail] = useState("");  
-  const [password, setPassword] = useState(""); 
-  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-
-  // keep user logged in if page refreshes
-  useEffect(() => {
-    console.log("Entering LoginPage");
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser || null);
-    });
-    return () => unsubscribe();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,8 +29,6 @@ function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      setEmail("");
-      setPassword("");
       navigate("/HomePage");
     } catch (err) {
       const msg =
@@ -55,75 +39,53 @@ function LoginPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
-
   return (
-    <div className="page">
-      
-      <main className="hero">
-        <section className="hero-left">
-          <h1>Welcome</h1>
-          <p>
-            This is the learning platform where students can log in to access
-            personalised content and features.
-          </p>
+    <div className="login-page">
+      <div className="login-card-container">
+        
+        <Link to="/HomePage" className="back-home">
+          ⬅ Back to Home Page
+        </Link>
 
-          {user && (
-            <p className="logged-in-text">
-              You are currently logged in as <strong>{user.email}</strong>.
-            </p>
-          )}
-        </section>
+        <div className="login-title">
+          <h1>Login to Your Account</h1>
+        </div>
 
-        <section className="hero-right">
-          {!user ? (
-            <div className="login-card">
-              <h2 className="login-title">Login</h2>
+        <form onSubmit={handleSubmit}>
+          <label className="login-label">Email Address</label>
+          <input
+            className="login-input"
+            type="email"
+            placeholder="Enter your email address"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-              <form onSubmit={handleSubmit}>
-                <input
-                  type="email"
-                  className="login-input"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
+          <label className="login-label">Password</label>
+          <input
+            className="login-input"
+            type="password"
+            placeholder="Enter your password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-                <input
-                  type="password"
-                  className="login-input"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+          {error && <p className="login-error">{error}</p>}
 
-                {error && <p className="login-error"> {error}</p>}
+          <div className="no-acc-div">
+            <span>Don't have an account?</span>
+            <Link to="/RegisterPage" className="login-link">
+              Register here
+            </Link>
+          </div>
 
-                <button type="submit" className="login-btn" disabled={loading}>
-                  {loading ? "Please wait..." : "Login"}
-                </button>
-
-                <p className="login-register-link">
-                  Don't have an account?{" "}
-                  <Link to="/RegisterPage" className="register-now-link">
-                    Register Now
-                  </Link>
-                </p>
-              </form>
-            </div>
-          ) : (
-            <div className="login-card">
-              <h2 className="login-title">Logged in</h2>
-              <p>You are logged in as {user.email}</p>
-              <button className="login-btn" onClick={handleLogout}>
-                Logout
-              </button>
-            </div>
-          )}
-        </section>
-      </main>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "Please wait..." : "Login"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
