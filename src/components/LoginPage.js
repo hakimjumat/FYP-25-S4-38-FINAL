@@ -61,17 +61,7 @@ function LoginPage() {
 
   return (
     <div className="page">
-      <header className="nav">
-        <div className="nav-left">Website</div>
-        <ul className="nav-menu">
-          <li>Courses</li>
-          <li>About</li>
-          <li>Services</li>
-          <li>Contact</li>
-        </ul>
-        <button className="nav-login-btn">Login</button>
-      </header>
-
+      
       <main className="hero">
         <section className="hero-left">
           <h1>Welcome</h1>
