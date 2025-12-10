@@ -1,0 +1,119 @@
+/* PAGE BACKGROUND (same gradient theme as register page) */
+.profile-page {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgb(124, 124, 150),
+    rgba(164, 143, 223, 0.342)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* MAIN CONTAINER CARD */
+.profile-container {
+  background-color: white;
+  width: 90%;
+  max-width: 900px;
+  margin: auto;
+  padding: 40px;
+  border-radius: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  font-family: Arial, sans-serif;
+}
+
+/* LEFT SECTION */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  background: rgb(124, 124, 150);
+  border-radius: 50%;
+  color: white;
+  font-size: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-name {
+  margin: 0;
+  font-size: 28px;
+  font-weight: bold;
+  color: rgb(50, 50, 50);
+}
+
+.profile-role {
+  margin: 2px 0 0;
+  color: gray;
+  font-size: 15px;
+}
+
+h2 {
+  color: rgb(50, 50, 50);
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+/* Completed courses & about sections */
+.courses-section ul {
+  list-style: none;
+  padding-left: 10px;
+  margin: 0;
+}
+
+.courses-section li {
+  padding: 5px 0;
+  color: rgb(70, 70, 70);
+}
+
+/* RIGHT SECTION */
+.badges-section h2 {
+  margin-bottom: 10px;
+}
+.badges-section .badges-container {
+  display: flex;
+  gap: 15px;
+}
+
+/* BUTTONS */
+.action-buttons {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  max-width: 340px;
+}
+
+.action-buttons button {
+  padding: 12px;
+  background-color: white;
+  border: 2px solid rgb(124, 147, 224); /* blue tone from register links */
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 15px;
+}
+
+.action-buttons button:hover {
+  background-color: rgba(124, 147, 224, 0.1);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .profile-container {
+    grid-template-columns: 1fr;
+    max-width: 95%;
+  }
+}
