@@ -15,7 +15,8 @@
 }
 
 .home-nav {
-  width: 97%;
+  width: 100%;
+  box-sizing: border-box;  
   padding: 12px 40px;
   display: flex;
   justify-content: space-between;
