@@ -3,6 +3,8 @@ const router = express.Router();
 
 // Import all route modules
 const studentRoutes = require("./studentRoutes");
+const adminRoutes = require("./adminRoutes");
+const instructorRoutes = require("./instructorRoutes");
 // const courseRoutes = require("./courseRoutes");
 const authRoutes = require("./authRoutes");
 
@@ -10,6 +12,8 @@ const authRoutes = require("./authRoutes");
 router.use("/students", studentRoutes);
 // router.use("/courses", courseRoutes);
 router.use("/auth", authRoutes);
+router.use("/instructors", instructorRoutes);
+router.use("/admin", adminRoutes);
 
 // Health check route
 router.get("/status", (req, res) => {
