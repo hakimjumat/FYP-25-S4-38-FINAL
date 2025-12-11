@@ -6,7 +6,7 @@ const cors = require("cors");
 //since firebase is initialized in config/firebase.js, we just need to require it here
 const admin = require("./config/firebase");
 
-const routes = require("./routes");
+const routes = require("./routes/index");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();

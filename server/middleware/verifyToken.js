@@ -27,6 +27,7 @@ const verifyToken = async (req, res, next) => {
       email: decodedToken.email,
       role: decodedToken.role || "student", // You can set custom claims
     };
+    console.log(` VERIFIED: User ${decodedToken.email} is allowed.`);
 
     next();
   } catch (error) {
