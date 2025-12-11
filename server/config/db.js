@@ -1,4 +1,4 @@
-const { admin } = require("./firebase");
+const admin = require("./firebase");
 
 // Get Firestore database instance
 const db = admin.firestore();

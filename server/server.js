@@ -1,11 +1,13 @@
+require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
-const { initializeFirebase } = require("./config/firebase");
+
+//since firebase is initialized in config/firebase.js, we just need to require it here
+const admin = require("./config/firebase");
+
 const routes = require("./routes");
 const errorHandler = require("./middleware/errorHandler");
-
-// Initialize Firebase Admin
-initializeFirebase();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

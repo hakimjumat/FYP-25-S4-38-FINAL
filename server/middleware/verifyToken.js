@@ -1,4 +1,4 @@
-const { admin } = require("../config/firebase");
+const admin = require("../config/firebase");
 
 /**
  * Middleware to verify Firebase ID token

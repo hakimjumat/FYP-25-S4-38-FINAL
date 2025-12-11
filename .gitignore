@@ -3,8 +3,8 @@ node_modules/
 */node_modules/
 
 # Environment variables
-.env
-*/.env
+# .env
+# */.env
 
 # Firebase service account
 serviceAccountKey.json
