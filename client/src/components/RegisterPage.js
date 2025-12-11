@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import { Link, resolvePath, useNavigate } from "react-router-dom";
 import "../CSS/RegisterPage.css";
 import { auth } from "../firebase";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { authFetch } from "../services/api";
 
 function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -35,6 +40,8 @@ function RegisterPage() {
         password
       );
 
+      const user = userCredential.user;
+
       const fullName = `${firstName} ${lastName}`;
 
       // update display name
@@ -44,7 +51,7 @@ function RegisterPage() {
 
       // Important: Create user profile in Firestore (backend)
 
-      const response = await fetch(
+      await authFetch(
         "http://localhost:5000/api/auth/create-profile",
         {
           method: "POST",
@@ -58,20 +65,17 @@ function RegisterPage() {
             lastName: lastName,
             role: role,
           }),
-        }
+        },
+        user
       );
-
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.message || "Failed to create user profile");
-      }
 
       alert(
         `${
           role.charAt(0).toUpperCase() + role.slice(1)
         } account created successfully!`
       );
+
+      await signOut(auth); // log out user after registration
       navigate("/LoginPage");
     } catch (err) {
       console.error("Registration error:", err);
