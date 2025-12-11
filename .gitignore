@@ -1,30 +1,38 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Node modules
+node_modules/
+*/node_modules/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Environment variables
+.env
+*/.env
 
-# testing
-/coverage
+# Firebase service account
+serviceAccountKey.json
+*/serviceAccountKey.json
 
-# production
-/build
+# Build directories
+build/
+dist/
+*/build/
+*/dist/
 
-# misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Ignore Backend dependencies
-server/node_modules
+# OS files
+.DS_Store
+Thumbs.db
 
-# Ignore Firebase Secrets
-server/serviceAccountKey.json
-.env
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+.nyc_output/
