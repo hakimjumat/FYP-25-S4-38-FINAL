@@ -20,4 +20,18 @@ router.get("/status", (req, res) => {
   });
 });
 
+// Test route that returns sample data
+router.get("/test-data", (req, res) => {
+  res.json({
+    success: true,
+    message: "Backend is working!",
+    sampleData: {
+      name: "Test User",
+      points: 999,
+      level: 5,
+      badges: ["Test Badge 1", "Test Badge 2"],
+    },
+  });
+});
+
 module.exports = router;
