@@ -5,12 +5,12 @@ import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { AuthContext } from "../auth/authContext";
 
-function LoginPage({onLogin, userData}) {
+function LoginPage({ onLogin, userData }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  // const [loading, setLoading] = useState(false);
-  const { setUser } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false); // added loading back
+  // const { setUser } = useContext(AuthContext); - redundant
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -29,27 +29,22 @@ function LoginPage({onLogin, userData}) {
 
     // setLoading(true);
     try {
-      // const userLogin = await signInWithEmailAndPassword(auth, email, password);
-      const credentials = await signInWithEmailAndPassword(auth, email, password);
-      const firebaseUser = credentials.user;
-      const token = await firebaseUser.getIdToken();
-      setUser({ uid: firebaseUser.uid, email: firebaseUser.email, token });
-      localStorage.setItem("user", JSON.stringify({ uid: firebaseUser.uid, email: firebaseUser.email }));
+      // firebase log in
+      await signInWithEmailAndPassword(auth, email, password);
+      // no need to set state manually because AuthContext will pick up the chnage automatically
       navigate("/HomePage");
     } catch (err) {
       const msg =
         err.code?.replace("auth/", "").replace(/-/g, " ") || err.message;
       setError(msg);
+    } finally {
+      setLoading(false);
     }
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   return (
     <div className="login-page">
       <div className="login-card-container">
-        
         <Link to="/HomePage" className="back-home">
           ⬅ Back to Home Page
         </Link>
@@ -91,8 +86,8 @@ function LoginPage({onLogin, userData}) {
           {/* <button type="submit" className="login-button" disabled={loading}>
             {loading ? "Please wait..." : "Login"}
           </button> */}
-          <button type="submit" className="login-button">
-            Login
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
