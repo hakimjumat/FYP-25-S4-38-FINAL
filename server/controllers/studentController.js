@@ -73,6 +73,22 @@ class StudentController {
       next(error);
     }
   }
+
+  // Record daily login for gamification streaks
+  async recordLogin(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const streakData = await gamificationModel.updateStreak(uid);
+
+      res.status(200).json({
+        success: true,
+        message: "Login recorded",
+        data: streakData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new StudentController();
