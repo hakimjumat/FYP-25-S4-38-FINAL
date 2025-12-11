@@ -1,5 +1,7 @@
 // business logic for student operations. E.g., fetching student details, updating profiles, etc.
 
+// updated to only be accessible by users with 'student' role.
+
 const userModel = require("../models/userModel");
 const gamificationModel = require("../models/gamificationModel");
 
@@ -9,6 +11,14 @@ class StudentController {
     try {
       const uid = req.user.uid;
       const email = req.user.email;
+
+      // verify user is a student
+      if (req.user.role !== "student") {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden: Access is allowed for students only",
+        });
+      }
 
       // Fetch user profile
       const userProfile = await userModel.getUserById(uid);
@@ -24,8 +34,26 @@ class StudentController {
         data: {
           studentId: uid,
           email,
+          role: userProfile.role,
           profile: userProfile,
           gamification: gamificationData,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getenrolledCourses(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      // TODO: Fetch enrolled courses from enrollmentModel (not implemented yet)
+
+      res.status(200).json({
+        success: true,
+        message: `Enrolled courses retrieved for ${uid}`,
+        data: {
+          courses: [], // Placeholder for enrolled courses
         },
       });
     } catch (error) {

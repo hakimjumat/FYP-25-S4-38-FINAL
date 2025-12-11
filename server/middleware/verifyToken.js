@@ -1,4 +1,5 @@
 const admin = require("../config/firebase");
+const userModel = require("../models/userModel");
 
 /**
  * Middleware to verify Firebase ID token
@@ -16,16 +17,20 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
+    // Extract token
     const token = authHeader.split("Bearer ")[1];
 
     // Verify token with Firebase
     const decodedToken = await admin.auth().verifyIdToken(token);
 
+    // get user role from Firestore
+    const userProfile = await userModel.getUserById(decodedToken.uid);
+
     // Attach user info to request object
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      role: decodedToken.role || "student", // You can set custom claims
+      role: userProfile?.role || "student", // get role from firestore
     };
     console.log(` VERIFIED: User ${decodedToken.email} is allowed.`);
 
