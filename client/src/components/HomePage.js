@@ -59,6 +59,8 @@ function Footer() {
 function HomePage() {
   const [user, setUser] = useState(null);
   const [studentData, setStudentData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     console.log("Entering Homepage");
@@ -70,7 +72,7 @@ function HomePage() {
           const token = await firebaseUser.getIdToken();
 
           const response = await fetch(
-            "http://localhost:5000/api/student-profile",
+            "http://localhost:5000/api/students/profile",
             {
               method: "GET",
               headers: {
@@ -107,6 +109,9 @@ function HomePage() {
             </p>
           )}
 
+          {loading && <p>Loading your profile...</p>}
+          {error && <p style={{ color: "red" }}>⚠️ Error: {error}</p>}
+
           {/* DISPLAY BACKEND DATA */}
           {studentData && studentData.gamification && (
             <div className="home-progress-box">
@@ -119,11 +124,13 @@ function HomePage() {
               </p>
               <p>
                 <strong>Current Streak:</strong>{" "}
-                {studentData.gamification.streak} days 🔥
+                {studentData.gamification.streak} days
               </p>
               <p>
                 <strong>Badges:</strong>{" "}
-                {studentData.gamification.badges.join(", ")}
+                {studentData.gamification.badges.length > 0
+                  ? studentData.gamification.badges.join(", ")
+                  : "No badges yet - keep learning!"}
               </p>
             </div>
           )}
