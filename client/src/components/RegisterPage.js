@@ -10,6 +10,7 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("student"); // new: default to student
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,13 +18,14 @@ function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true); // start loading
 
     if (password !== confirmPassword) {
       setError("Password do not match!");
       setLoading(false); // stop loading
       return;
     }
+
+    setLoading(true); // start loading
 
     try {
       // create user in Firebase Auth (frontend)
@@ -54,7 +56,7 @@ function RegisterPage() {
             email: email,
             firstName: firstName,
             lastName: lastName,
-            role: "student",
+            role: role,
           }),
         }
       );
@@ -65,9 +67,14 @@ function RegisterPage() {
         throw new Error(result.message || "Failed to create user profile");
       }
 
-      alert("Account created successfully!");
+      alert(
+        `${
+          role.charAt(0).toUpperCase() + role.slice(1)
+        } account created successfully!`
+      );
       navigate("/LoginPage");
     } catch (err) {
+      console.error("Registration error:", err);
       const msg =
         err.code?.replace("auth/", "").replace(/-/g, "") || err.message;
       setError(msg);
@@ -128,6 +135,19 @@ function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
 
+          {/* NEW: Role Selection */}
+          <label className="password">Account Type *</label>
+          <select
+            className="password-text"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+          >
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+            <option value="admin">Administrator</option>
+          </select>
+
           <label className="password">Password *</label>
           <input
             className="password-text"
@@ -166,7 +186,11 @@ function RegisterPage() {
           </div>
           {error && <p style={{ color: "red", fontSize: "14px" }}>{error}</p>}
           <button type="submit" className="register-button" disabled={loading}>
-            {loading ? "Creating..." : "Create Account"}
+            {loading
+              ? "Creating..."
+              : `Create ${
+                  role.charAt(0).toUpperCase() + role.slice(1)
+                } Account`}
           </button>
         </form>
       </div>
