@@ -96,9 +96,19 @@ function CourseEditorPage() {
   };
 
   // --- STEP 2: HANDLE FILE SELECTION ---
-  const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadFile(e.target.files[0]);
+  // === NEW: DRAG & DROP HANDLERS ===
+  const handleDragOver = (e) => {
+    e.preventDefault(); // <--- CRITICAL: Stops browser from opening file
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); // <--- CRITICAL: Stops browser from opening file
+    e.stopPropagation();
+
+    // Capture the file from the drop event
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setUploadFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -279,10 +289,12 @@ function CourseEditorPage() {
                   style={{ display: "none" }}
                 />
 
-                {/* Clickable Dropzone Area */}
+                {/* UPDATED DROPZONE WITH HANDLERS */}
                 <div
                   className="upload-dropzone"
                   onClick={() => fileInputRef.current.click()}
+                  onDragOver={handleDragOver} // <--- ADDED
+                  onDrop={handleDrop} // <--- ADDED
                 >
                   <div className="upload-icon">📁</div>
                   <p>
