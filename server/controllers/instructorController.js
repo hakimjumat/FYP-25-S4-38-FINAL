@@ -3,6 +3,7 @@
 // updated to only be accessible by users with 'instructor' role.
 
 const userModel = require("../models/userModel");
+const courseModel = require("../models/courseModel");
 
 class InstructorController {
   // Get instructor profile
@@ -33,36 +34,84 @@ class InstructorController {
     try {
       const uid = req.user.uid;
 
-      // TODO: Fetch courses created by the instructor from courseModel (not implemented yet)
+      const courses = await courseModel.getCoursesByInstructor(req.user.uid);
 
       res.status(200).json({
         success: true,
         message: `Courses retrieved for instructor ${uid}`,
-        data: {
-          courses: [], // Placeholder for instructor's courses
-        },
+        data: courses, // Placeholder for instructor's courses
       });
     } catch (error) {
       next(error);
     }
   }
 
+  // Create a new empty course
   async createCourse(req, res, next) {
     try {
-      const uid = req.user.uid;
       const { title, description } = req.body;
+      const instructorId = req.user.uid;
 
-      // TODO: Implement course creation logic in courseModel (not implemented yet)
+      if (!title || !description) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "Title and description are required",
+          });
+      }
+
+      // issue for name being null or undefined
+      let instructorName = "Unknown Instructor";
+      try {
+        const userProfile = await userModel.getUserById(instructorId);
+        if (userProfile && userProfile.firstName) {
+          instructorName = `${userProfile.firstName} ${userProfile.lastName}`;
+        } else if (req.user.email) {
+          instructorName = req.user.email; // Fallback to email if name missing
+        }
+      } catch (err) {
+        console.warn("Could not fetch instructor name, using default.");
+      }
+
+      const newCourse = await courseModel.createCourse({
+        title,
+        description,
+        instructorId,
+        instructorName, // <--- Now this is guaranteed to be a string
+      });
 
       res.status(201).json({
         success: true,
-        message: `Course created successfully by instructor ${uid}`,
-        data: {
-          courseId: "temp-id", // Placeholder for new course ID
-          instructorId: uid,
-          title,
-          description,
-        },
+        message: "Course created successfully",
+        data: newCourse,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async addCourseContent(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      // fileUrl comes from client after uploading to Firebase Storage
+      const { courseId, title, fileUrl, type } = req.body;
+      if (!courseId || !title || !fileUrl) {
+        return res.status(400).json({
+          success: false,
+          message: "Missing content details",
+        });
+      }
+      const updatedContent = await courseModel.addCourseContent(courseId, {
+        title,
+        fileUrl,
+        type: type || "document",
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Content added to course ${courseId} by instructor ${uid}`,
+        data: updatedContent,
       });
     } catch (error) {
       next(error);
