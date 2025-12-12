@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const adminController = require("../controllers/adminController");
+const instructorController = require("../controllers/instructorController");
 const verifyToken = require("../middleware/verifyToken");
 const checkRole = require("../middleware/checkRole");
 
@@ -8,21 +8,25 @@ const checkRole = require("../middleware/checkRole");
 router.use(verifyToken);
 
 // All routes require 'admin' role
-router.use(checkRole(["admin"]));
+router.use(checkRole(["instructor"]));
 
-// GET /api/admin/users - Get all users (optional role filter)
-router.get("/users", adminController.getAllUsers);
+// GET /api/instructor/profile - Get instructor profile
+router.get("/profile", instructorController.getProfile);
 
-// GET /api/admin/users/:userId - Get user by ID
-router.get("/users/:userId", adminController.getUserById);
+// POST /api/instructor/create-course - create a new course
+router.post("/create-course", instructorController.createCourse);
 
-// DELETE /api/admin/users/:userId - Delete user
-router.delete("/users/:userId", adminController.deleteUser);
+// POST /api/instructor/add-content - add content to a course
+router.post("/add-content", instructorController.addCourseContent);
 
-// PUT /api/admin/users/:userId/role - Change user role
-router.put("/users/:userId/role", adminController.changeUserRole);
+// GET /api/instructor/my-courses - Get all courses created by the instructor
+router.get("/my-courses", instructorController.getMyCourses);
 
-// GET /api/admin/stats - Get platform statistics
-router.get("/stats", adminController.getStats);
+// TODO in future...
+// GET /api/instructors/students - Get all students in instructor's courses
+router.get("/students", instructorController.getStudents);
+
+// POST /api/instructors/award-badge - Award badge to student
+router.post("/award-badge", instructorController.awardBadge);
 
 module.exports = router;
