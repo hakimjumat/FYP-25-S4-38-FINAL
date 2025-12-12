@@ -10,22 +10,21 @@ function CourseEditorPage() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // --- VIEW STATE ---
+  const [selectedCourse, setSelectedCourse] = useState(null); // If null, show list. If set, show dashboard.
+
   // --- MODAL STATE ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // Steps: 'step1_details', 'step2_upload', 'step3_success'
-  const [creationStep, setCreationStep] = useState("step1_details");
+  const [modalType, setModalType] = useState(null); // 'create_course', 'upload_content', 'edit_details', 'delete_course'
+  const [modalStep, setModalStep] = useState(1);
 
-  // Form Data State
-  const [newCourseData, setNewCourseData] = useState({
-    title: "",
-    description: "",
-  });
-  const [createdCourseId, setCreatedCourseId] = useState(null);
+  // --- FORM DATA STATE ---
+  const [formData, setFormData] = useState({ title: "", description: "" });
   const [uploadFile, setUploadFile] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const fileInputRef = useRef(null); // Hidden file input ref
+  const fileInputRef = useRef(null);
 
-  // --- 1. FETCH EXISTING COURSES ---
+  // === DATA FETCHING ===
   const fetchCourses = async () => {
     try {
       const res = await authFetch(
@@ -33,8 +32,12 @@ function CourseEditorPage() {
         {},
         user
       );
-      if (res.success) {
-        setCourses(res.data);
+      if (res.success) setCourses(res.data);
+
+      // If we are viewing a specific course, update its data too
+      if (selectedCourse) {
+        const updated = res.data.find((c) => c.id === selectedCourse.id);
+        if (updated) setSelectedCourse(updated);
       }
     } catch (error) {
       console.error("Error fetching courses:", error);
@@ -44,213 +47,296 @@ function CourseEditorPage() {
   };
 
   useEffect(() => {
-    if (user) {
-      fetchCourses();
-    }
+    if (user) fetchCourses();
   }, [user]);
 
-  // --- MODAL ACTIONS ---
+  // === ACTION HANDLERS ===
 
-  const handleOpenModal = () => {
-    // Reset state when opening
-    setCreationStep("step1_details");
-    setNewCourseData({ title: "", description: "" });
-    setUploadFile(null);
-    setCreatedCourseId(null);
+  // 1. OPEN MODALS
+  const openCreateModal = () => {
+    setModalType("create_course");
+    setFormData({ title: "", description: "" });
+    setModalStep(1);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const openUploadModal = () => {
+    setModalType("upload_content");
+    setUploadFile(null);
+    setModalStep(1); // Reusing Step 1 as the upload UI
+    setIsModalOpen(true);
   };
 
-  // --- STEP 1: CREATE COURSE DOCUMENT ---
-  const handleCreateDetails = async (e) => {
-    e.preventDefault();
-    if (!newCourseData.title || !newCourseData.description)
-      return alert("Fill all fields");
+  const openEditModal = () => {
+    setModalType("edit_details");
+    setFormData({
+      title: selectedCourse.title,
+      description: selectedCourse.description,
+    });
+    setIsModalOpen(true);
+  };
 
+  const openDeleteModal = () => {
+    setModalType("delete_course");
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalLoading(false);
+  };
+
+  // 2. SUBMIT HANDLERS
+
+  // Create New Course
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
     setModalLoading(true);
     try {
-      // Call backend to create course entry
-      const createRes = await authFetch(
+      const res = await authFetch(
         "http://localhost:5000/api/instructors/create-course",
         {
           method: "POST",
-          body: JSON.stringify(newCourseData),
+          body: JSON.stringify(formData),
         },
         user
       );
 
-      if (createRes.success) {
-        // Save ID and move to next step
-        setCreatedCourseId(createRes.data.id);
-        setCreationStep("step2_upload");
+      if (res.success) {
+        // Instead of moving to upload, we just finish creation and refresh
+        closeModal();
+        await fetchCourses();
+        alert("Course Created!");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Failed to create course details");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create");
     } finally {
       setModalLoading(false);
     }
   };
 
-  // --- STEP 2: HANDLE FILE SELECTION ---
-
-  const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadFile(e.target.files[0]);
-    }
-  };
-  // === NEW: DRAG & DROP HANDLERS ===
-  const handleDragOver = (e) => {
-    e.preventDefault(); // <--- CRITICAL: Stops browser from opening file
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault(); // <--- CRITICAL: Stops browser from opening file
-    e.stopPropagation();
-
-    // Capture the file from the drop event
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setUploadFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  // --- STEP 2: UPLOAD FILE & LINK CONTENT ---
-  const handleUploadContent = async () => {
-    if (!uploadFile || !createdCourseId)
-      return alert("Please select a file first");
-
+  // Upload Content
+  const handleUploadSubmit = async () => {
+    if (!uploadFile) return;
     setModalLoading(true);
     try {
-      // 1. Upload to Firebase Storage
+      // Upload to Firebase
       const storageRef = ref(
         storage,
-        `courses/${createdCourseId}/${uploadFile.name}`
+        `courses/${selectedCourse.id}/${uploadFile.name}`
       );
       await uploadBytes(storageRef, uploadFile);
-      const downloadUrl = await getDownloadURL(storageRef);
+      const url = await getDownloadURL(storageRef);
 
-      // 2. Tell Backend to link file to course
-      const contentRes = await authFetch(
+      // Save to Backend
+      await authFetch(
         "http://localhost:5000/api/instructors/add-content",
         {
           method: "POST",
           body: JSON.stringify({
-            courseId: createdCourseId,
-            title: "Initial Course Content", // You could add an input for this too
-            fileUrl: downloadUrl,
+            courseId: selectedCourse.id,
+            title: uploadFile.name,
+            fileUrl: url,
             type: uploadFile.type,
           }),
         },
         user
       );
 
-      if (contentRes.success) {
-        setCreationStep("step3_success");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Failed to upload content");
+      setModalStep(2); // Show success
+      await fetchCourses(); // Refresh data behind modal
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
     } finally {
       setModalLoading(false);
     }
   };
 
-  // --- STEP 3: FINISH & REFRESH ---
-  const handleFinish = () => {
-    handleCloseModal();
-    setLoading(true);
-    // RE-FETCH courses so the new one appears immediately
-    fetchCourses();
+  // Update Details
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setModalLoading(true);
+    try {
+      await authFetch(
+        "http://localhost:5000/api/instructors/update-course",
+        {
+          method: "PUT",
+          body: JSON.stringify({ ...formData, courseId: selectedCourse.id }),
+        },
+        user
+      );
+      closeModal();
+      await fetchCourses();
+    } catch (err) {
+      console.error(err);
+      alert("Update failed");
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Delete Course
+  const handleDeleteCourse = async () => {
+    if (!window.confirm("Are you sure? This cannot be undone.")) return;
+    setModalLoading(true);
+    try {
+      await authFetch(
+        `http://localhost:5000/api/instructors/delete-course/${selectedCourse.id}`,
+        {
+          method: "DELETE",
+        },
+        user
+      );
+      setSelectedCourse(null); // Go back to grid
+      closeModal();
+      await fetchCourses();
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // Delete Specific Content File
+  const handleDeleteFile = async (contentId) => {
+    if (!window.confirm("Delete this file?")) return;
+    try {
+      await authFetch(
+        `http://localhost:5000/api/instructors/remove-content/${selectedCourse.id}/${contentId}`,
+        {
+          method: "DELETE",
+        },
+        user
+      );
+      await fetchCourses();
+    } catch (err) {
+      console.error(err);
+      alert("File delete failed");
+    }
+  };
+
+  // Drag & Drop Helpers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files[0])
+      setUploadFile(e.dataTransfer.files[0]);
+  };
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) setUploadFile(e.target.files[0]);
   };
 
   // ================= RENDER =================
 
-  if (loading && courses.length === 0)
-    return <div style={{ padding: "30px" }}>Loading courses...</div>;
-
   return (
     <div className="editor-container">
-      <h1>Courses</h1>
-      <p>Manage your existing courses or create new ones.</p>
-
-      {/* GRID OF EXISTING COURSES */}
-      <div className="courses-grid">
-        {courses.length > 0 ? (
-          courses.map((course) => (
-            <div key={course.id} className="course-card">
-              {/* Placeholder image - you can add image upload to Step 1 later */}
+      {/* VIEW 1: COURSE GRID */}
+      {!selectedCourse && (
+        <>
+          <h1>Courses Editor (Instructor)</h1>
+          <p>Manage your existing courses or create new ones.</p>
+          <div className="courses-grid">
+            {courses.map((course) => (
               <div
-                className="course-card-image"
-                style={{
-                  backgroundImage: `url('https://placehold.co/600x400?text=${course.title.charAt(
-                    0
-                  )}')`,
-                }}
-              ></div>
-              <div className="course-card-content">
-                <h3>{course.title}</h3>
-                <p>{course.description.substring(0, 100)}...</p>
-                <p
-                  style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}
-                >
-                  {course.content?.length || 0} Items /{" "}
-                  {course.enrolledStudents?.length || 0} Students
-                </p>
+                key={course.id}
+                className="course-card"
+                onClick={() => setSelectedCourse(course)}
+              >
+                <div
+                  className="course-card-image"
+                  style={{
+                    backgroundImage: `url('https://placehold.co/600x400?text=${course.title.charAt(
+                      0
+                    )}')`,
+                  }}
+                ></div>
+                <div className="course-card-content">
+                  <h3>{course.title}</h3>
+                  <p>{course.description.substring(0, 100)}...</p>
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      marginTop: "10px",
+                    }}
+                  >
+                    {course.content?.length || 0} Files
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p>You haven't created any courses yet.</p>
-        )}
-      </div>
+            ))}
+          </div>
+          <button className="fab-btn" onClick={openCreateModal}>
+            + Create Course
+          </button>
+        </>
+      )}
 
-      {/* THE BLACK FLOATING BUTTON */}
-      <button
-        className="fab-btn"
-        onClick={handleOpenModal}
-        title="Create New Course"
-      >
-        + Create Course
-      </button>
+      {/* VIEW 2: SINGLE COURSE DASHBOARD */}
+      {selectedCourse && (
+        <div className="course-dashboard">
+          <button className="back-link" onClick={() => setSelectedCourse(null)}>
+            ← Back to All Courses
+          </button>
 
-      {/* === THE MODAL OVERLAY === */}
+          <div className="dashboard-header">
+            <h1>{selectedCourse.title}</h1>
+            <p>{selectedCourse.description}</p>
+          </div>
+
+          {/* THE 8 BUTTON GRID */}
+          <div className="dashboard-grid">
+            <button className="dash-btn" onClick={openUploadModal}>
+              📤 Upload Content
+            </button>
+            <button className="dash-btn" onClick={openEditModal}>
+              ✏️ Edit Content / View Files
+            </button>
+            <button className="dash-btn btn-red" onClick={openDeleteModal}>
+              🗑️ Delete Content / Course
+            </button>
+            <button className="dash-btn">🌐 Enable Translation</button>
+            <button className="dash-btn">🎁 Course Incentivization</button>
+            <button className="dash-btn">👥 View Students</button>
+            <button className="dash-btn">📊 Analyze Data</button>
+          </div>
+
+          <button className="dash-btn btn-announce">
+            📢 Make Announcement
+          </button>
+        </div>
+      )}
+
+      {/* === MODALS === */}
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-box">
-            {/* === MODAL STEP 1: DETAILS FORM === */}
-            {creationStep === "step1_details" && (
-              <form onSubmit={handleCreateDetails}>
+            {/* 1. CREATE COURSE MODAL */}
+            {modalType === "create_course" && (
+              <form onSubmit={handleCreateSubmit}>
                 <h2>Create New Course</h2>
-                <p style={{ marginBottom: "20px", color: "#666" }}>
-                  Step 1 of 2: Course Details
-                </p>
                 <input
                   className="modal-input"
-                  type="text"
-                  placeholder="Course Title"
-                  value={newCourseData.title}
+                  placeholder="Title"
+                  value={formData.title}
                   onChange={(e) =>
-                    setNewCourseData({
-                      ...newCourseData,
-                      title: e.target.value,
-                    })
+                    setFormData({ ...formData, title: e.target.value })
                   }
                   required
-                  autoFocus
                 />
                 <textarea
                   className="modal-input modal-textarea"
-                  placeholder="Course Description (Bigger box)"
-                  value={newCourseData.description}
+                  placeholder="Description"
+                  value={formData.description}
                   onChange={(e) =>
-                    setNewCourseData({
-                      ...newCourseData,
-                      description: e.target.value,
-                    })
+                    setFormData({ ...formData, description: e.target.value })
                   }
                   required
                 />
@@ -259,83 +345,156 @@ function CourseEditorPage() {
                   className="modal-btn"
                   disabled={modalLoading}
                 >
-                  {modalLoading ? "Creating..." : "Create Course"}
+                  Create
                 </button>
-                {!modalLoading && (
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    style={{
-                      background: "transparent",
-                      color: "#999",
-                      border: "none",
-                      marginTop: "10px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cancel
-                  </button>
-                )}
+                <button type="button" onClick={closeModal} className="text-btn">
+                  Cancel
+                </button>
               </form>
             )}
 
-            {/* === MODAL STEP 2: UPLOAD CONTENT === */}
-            {creationStep === "step2_upload" && (
+            {/* 2. UPLOAD CONTENT MODAL */}
+            {modalType === "upload_content" && (
               <div>
-                <h2>Upload Content</h2>
-                <p style={{ marginBottom: "20px", color: "#666" }}>
-                  Step 2 of 2: Add Material
-                </p>
+                {modalStep === 1 ? (
+                  <>
+                    <h2>Upload Content</h2>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      style={{ display: "none" }}
+                    />
+                    <div
+                      className="upload-dropzone"
+                      onClick={() => fileInputRef.current.click()}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    >
+                      <div className="upload-icon">📁</div>
+                      <p>
+                        {uploadFile
+                          ? uploadFile.name
+                          : "Click or Drag to Upload"}
+                      </p>
+                    </div>
+                    <button
+                      className="modal-btn"
+                      onClick={handleUploadSubmit}
+                      disabled={!uploadFile || modalLoading}
+                    >
+                      {modalLoading ? "Uploading..." : "Upload"}
+                    </button>
+                    <button onClick={closeModal} className="text-btn">
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="success-icon">✅</div>
+                    <h3>Upload Successful!</h3>
+                    <button className="modal-btn" onClick={closeModal}>
+                      OK
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
 
-                {/* Hidden File Input */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  style={{ display: "none" }}
-                />
+            {/* 3. EDIT / VIEW DETAILS MODAL */}
+            {modalType === "edit_details" && (
+              <div>
+                <h2>Edit Course Details</h2>
+                <form onSubmit={handleEditSubmit}>
+                  <input
+                    className="modal-input"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                  />
+                  <textarea
+                    className="modal-input modal-textarea"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                  />
+                  <button
+                    type="submit"
+                    className="modal-btn"
+                    disabled={modalLoading}
+                  >
+                    Save Changes
+                  </button>
+                </form>
 
-                {/* UPDATED DROPZONE WITH HANDLERS */}
-                <div
-                  className="upload-dropzone"
-                  onClick={() => fileInputRef.current.click()}
-                  onDragOver={handleDragOver} // <--- ADDED
-                  onDrop={handleDrop} // <--- ADDED
-                >
-                  <div className="upload-icon">📁</div>
-                  <p>
-                    {uploadFile
-                      ? `Selected: ${uploadFile.name}`
-                      : "Drag content here or click to upload"}
-                  </p>
+                <h3 style={{ marginTop: "20px", textAlign: "left" }}>
+                  Attached Files
+                </h3>
+                <div className="file-list">
+                  {selectedCourse.content &&
+                  selectedCourse.content.length > 0 ? (
+                    selectedCourse.content.map((file) => (
+                      <div key={file.id} className="file-item">
+                        <span>📄 {file.title}</span>
+                        <a href={file.fileUrl} target="_blank" rel="noreferrer">
+                          Download
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <p>No files uploaded yet.</p>
+                  )}
                 </div>
-
-                <button
-                  onClick={handleUploadContent}
-                  className="modal-btn"
-                  disabled={modalLoading || !uploadFile}
-                >
-                  {modalLoading ? "Uploading & Linking..." : "Upload Content"}
+                <button onClick={closeModal} className="text-btn">
+                  Close
                 </button>
               </div>
             )}
 
-            {/* === MODAL STEP 3: SUCCESS === */}
-            {creationStep === "step3_success" && (
+            {/* 4. DELETE MODAL */}
+            {modalType === "delete_course" && (
               <div>
-                <div className="success-icon">✅</div>
-                <h2>Success!</h2>
-                <p
+                <h2>Delete Management</h2>
+                <p>Manage files or delete the whole course.</p>
+
+                <div
+                  className="file-list"
                   style={{
-                    margin: "20px 0",
-                    fontSize: "18px",
-                    lineHeight: "1.5",
+                    maxHeight: "150px",
+                    overflowY: "auto",
+                    margin: "10px 0",
                   }}
                 >
-                  Successfully created course and uploaded course content.
-                </p>
-                <button onClick={handleFinish} className="modal-btn">
-                  OK
+                  {selectedCourse.content?.map((file) => (
+                    <div key={file.id} className="file-item">
+                      <span>{file.title}</span>
+                      <button
+                        onClick={() => handleDeleteFile(file.id)}
+                        style={{
+                          color: "red",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✖
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <hr style={{ margin: "20px 0" }} />
+                <button
+                  className="modal-btn"
+                  style={{ backgroundColor: "red" }}
+                  onClick={handleDeleteCourse}
+                >
+                  Delete Entire Course
+                </button>
+                <button onClick={closeModal} className="text-btn">
+                  Cancel
                 </button>
               </div>
             )}

@@ -53,12 +53,10 @@ class InstructorController {
       const instructorId = req.user.uid;
 
       if (!title || !description) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Title and description are required",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Title and description are required",
+        });
       }
 
       // issue for name being null or undefined
@@ -154,6 +152,54 @@ class InstructorController {
       res.status(200).json({
         success: true,
         message: `Badge '${badgeName}' awarded to student ${studentId} by instructor ${uid}`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  //new methods
+  async updateCourse(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId, title, description } = req.body;
+      await courseModel.updateCourse(courseId, { title, description });
+
+      res.status(200).json({
+        success: true,
+        message: `Course ${courseId} updated successfully by instructor ${uid}`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteCourse(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId } = req.params;
+      await courseModel.deleteCourse(courseId);
+      res.status(200).json({
+        success: true,
+        message: `Course ${courseId} deleted successfully by instructor ${uid}`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async removeContent(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId, contentId } = req.params;
+      const updatedContent = await courseModel.removeContent(
+        courseId,
+        contentId
+      );
+      res.status(200).json({
+        success: true,
+        message: `Content ${contentId} removed from course ${courseId} by instructor ${uid}`,
+        data: updatedContent,
       });
     } catch (error) {
       next(error);

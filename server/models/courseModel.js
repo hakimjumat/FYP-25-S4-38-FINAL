@@ -60,6 +60,52 @@ class CourseModel {
       throw new Error(`Error fetching courses: ${error.message}`);
     }
   }
+
+  // new methods 121225
+  async updateCourse(courseId, updates) {
+    try {
+      await this.collection.doc(courseId).update({
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      });
+      return { success: true };
+    } catch (error) {
+      throw new Error(`Error updating course: ${error.message}`);
+    }
+  }
+
+  async deleteCourse(courseId) {
+    try {
+      // in real app, we should also delete from firestore directly to save space, for now we just delete the record
+      await this.collection.doc(courseId).delete();
+      return { success: true };
+    } catch (error) {
+      throw new Error(`Error deleting course: ${error.message}`);
+    }
+  }
+
+  async removeContent(courseId, contentId) {
+    try {
+      const courseRef = this.collection.doc(courseId);
+      const doc = await courseRef.get();
+
+      if (!doc.exists) throw new Error("Course not found");
+
+      const currentContent = doc.data().content || [];
+      const updatedContent = currentContent.filter(
+        (item) => item.id !== contentId
+      );
+
+      await courseRef.update({
+        content: updatedContent,
+        updatedAt: new Date().toISOString(),
+      });
+
+      return updatedContent;
+    } catch (error) {
+      throw new Error(`Error removing content: ${error.message}`);
+    }
+  }
 }
 
 module.exports = new CourseModel();
