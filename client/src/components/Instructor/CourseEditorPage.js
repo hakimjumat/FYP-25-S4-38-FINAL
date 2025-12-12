@@ -29,7 +29,7 @@ function CourseEditorPage() {
   const fetchCourses = async () => {
     try {
       const res = await authFetch(
-        "http://localhost:5000/api/instructor/my-courses",
+        "http://localhost:5000/api/instructors/my-courses",
         {},
         user
       );
@@ -96,6 +96,12 @@ function CourseEditorPage() {
   };
 
   // --- STEP 2: HANDLE FILE SELECTION ---
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadFile(e.target.files[0]);
+    }
+  };
   // === NEW: DRAG & DROP HANDLERS ===
   const handleDragOver = (e) => {
     e.preventDefault(); // <--- CRITICAL: Stops browser from opening file
