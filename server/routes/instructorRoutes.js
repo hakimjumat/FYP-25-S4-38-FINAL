@@ -29,4 +29,13 @@ router.get("/students", instructorController.getStudents);
 // POST /api/instructors/award-badge - Award badge to student
 router.post("/award-badge", instructorController.awardBadge);
 
+router.put("/update-course", instructorController.updateCourse);
+
+router.delete("/delete-course/:courseId", instructorController.deleteCourse);
+
+router.delete(
+  "/remove-content/:courseId/:contentId",
+  instructorController.removeContent
+);
+
 module.exports = router;
