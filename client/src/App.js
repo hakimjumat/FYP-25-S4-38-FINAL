@@ -8,53 +8,35 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 
-import {
-    BrowserRouter,
-    Routes,
-    Route,
-    Navigate,
-} from "react-router-dom";
-import './CSS/App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "./CSS/App.css";
 import { AuthProvider } from "./auth/authContext";
 import LoginPage from "./components/LoginPage";
-import HomePage, { NavBar, Footer} from "./components/HomePage";
+import HomePage, { NavBar, Footer } from "./components/HomePage";
 import RegisterPage from "./components/RegisterPage";
 import ProfilePage from "./components/ProfilePage";
+import CourseEditorPage from "./components/Instructor/CourseEditorPage";
 
-function App() { 
-  return( 
+function App() {
+  return (
     <AuthProvider>
       <BrowserRouter>
         <div className="page-layout">
           <NavBar />
           <div className="content-wrap">
-              <Routes>
-                <Route
-                  exact
-                  path="/LoginPage"
-                  element={<LoginPage />}
-                />
+            <Routes>
+              <Route exact path="/LoginPage" element={<LoginPage />} />
 
-                <Route
-                  path="/"
-                  element={<HomePage />}
-                />
+              <Route path="/" element={<HomePage />} />
 
-                <Route
-                  path="/RegisterPage"
-                  element={<RegisterPage />} 
-                />
+              <Route path="/RegisterPage" element={<RegisterPage />} />
 
-                <Route
-                  path="/ProfilePage"
-                  element={<ProfilePage />} 
-                />
+              <Route path="/ProfilePage" element={<ProfilePage />} />
 
-                <Route
-                  path="*"
-                  element={<Navigate to="/" />}
-                />
-              </Routes>
+              <Route path="/CourseEditorPage" element={<CourseEditorPage />} />
+
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
           </div>
           <Footer />
         </div>

@@ -147,22 +147,32 @@ const StudentDashboard = ({ profile, gamification }) => (
   </div>
 );
 
-const InstructorDashboard = ({ profile }) => (
-  <div className="home-welcome-box instructor-theme">
-    <div className="dashboard-header">
-      <h2>👨‍🏫 Instructor Portal</h2>
-      <p className="home-logged-in-text">
-        Hello, <strong>{profile?.firstName}</strong>. Ready to teach?
-      </p>
-    </div>
+const InstructorDashboard = ({ profile }) => {
+  const navigate = useNavigate(); // Add this hook
 
-    <div className="action-row">
-      <button className="dashboard-btn primary">Create New Course</button>
-      <button className="dashboard-btn">Manage Students</button>
-      <button className="dashboard-btn">View Reports</button>
+  return (
+    <div className="home-welcome-box instructor-theme">
+      <div className="dashboard-header">
+        <h2>👨‍🏫 Instructor Portal</h2>
+        <p className="home-logged-in-text">
+          Hello, <strong>{profile?.firstName}</strong>. Ready to teach?
+        </p>
+      </div>
+
+      <div className="action-row">
+        {/* Update this button */}
+        <button
+          className="dashboard-btn primary"
+          onClick={() => navigate("/CreateCoursePage")}
+        >
+          Create New Course
+        </button>
+
+        <button className="dashboard-btn">Manage Students</button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const AdminDashboard = ({ profile }) => (
   <div className="home-welcome-box admin-theme">
