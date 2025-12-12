@@ -10,4 +10,7 @@ router.post("/create-profile", authController.createUserProfile);
 // GET /api/auth/current-user - Get current authenticated user
 router.get("/current-user", verifyToken, authController.getCurrentUser);
 
+// PUT /api/auth/update-profile - Update user profile
+router.put("/update-profile", verifyToken, authController.updateUserProfile);
+
 module.exports = router;

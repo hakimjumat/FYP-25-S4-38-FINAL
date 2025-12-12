@@ -15,10 +15,13 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [avatar, setAvatar] = useState("👨‍🎓"); // Default avatar
   const [role, setRole] = useState("student"); // new: default to student
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const AVATAR_OPTIONS = ["👨‍🎓", "👩‍🔬", "🦸"];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,6 +101,41 @@ function RegisterPage() {
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Avatar Selection */}
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <label className="login-label">Choose your Avatar</label>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: "15px",
+                marginTop: "10px",
+              }}
+            >
+              {AVATAR_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => setAvatar(opt)}
+                  style={{
+                    fontSize: "30px",
+                    background: avatar === opt ? "#e0e0ff" : "transparent",
+                    border:
+                      avatar === opt
+                        ? "2px solid #6c5ce7"
+                        : "2px solid transparent",
+                    borderRadius: "50%",
+                    width: "60px",
+                    height: "60px",
+                    cursor: "pointer",
+                    transition: "0.2s",
+                  }}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="name-row">
             <div className="name-field">
               <label className="first-name">First name *</label>

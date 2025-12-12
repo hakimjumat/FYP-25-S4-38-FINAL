@@ -73,7 +73,7 @@ class UserModel {
   // update user profile
   // updated to not allow role change via this method
 
-  async updateUser(uid, updates) {
+  async updateUserProfile(uid, updates) {
     try {
       // dont allow role update via this method
       const { role, ...safeUpdates } = updates;
