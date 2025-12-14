@@ -2,7 +2,6 @@ import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "../auth/authContext";
 import { authFetch } from "../services/api";
 import "../CSS/ProfilePage.css";
-import "../CSS/CourseEditorPage.css";
 
 function ProfilePage() {
   const { user } = useContext(AuthContext);
@@ -255,8 +254,8 @@ function ProfilePage() {
 
         {/* === EDIT MODAL === */}
         {isEditOpen && (
-          <div className="modal-overlay">
-            <div className="modal-box">
+          <div className="profile-modal-overlay">
+            <div className="profile-modal-box">
               <h2>Edit Profile</h2>
               <form onSubmit={handleEditSubmit}>
                 {/* Avatar Selector */}
@@ -293,7 +292,7 @@ function ProfilePage() {
                 </div>
 
                 <input
-                  className="modal-input"
+                  className="profile-modal-input"
                   placeholder="First Name"
                   value={editForm.firstName}
                   onChange={(e) =>
@@ -302,7 +301,7 @@ function ProfilePage() {
                 />
 
                 <input
-                  className="modal-input"
+                  className="profile-modal-input"
                   placeholder="Last Name"
                   value={editForm.lastName}
                   onChange={(e) =>
@@ -322,7 +321,7 @@ function ProfilePage() {
                     Email Address (Locked)
                   </label>
                   <input
-                    className="modal-input"
+                    className="profile-modal-input"
                     value={editForm.email}
                     disabled // <--- This disables typing
                     style={{
@@ -333,13 +332,13 @@ function ProfilePage() {
                   />
                 </div>
 
-                <button type="submit" className="modal-btn">
+                <button type="submit" className="profile-modal-btn">
                   Save Changes
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditOpen(false)}
-                  className="text-btn"
+                  className="profile-text-btn"
                 >
                   Cancel
                 </button>
