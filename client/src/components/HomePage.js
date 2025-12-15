@@ -258,8 +258,32 @@ function HomePage() {
     loadData();
   }, [user]);
 
-  if (!user)
-    return <div className="page-loading">Please log in to continue.</div>;
+  if (!user) {
+    return (
+      <div className="home-page">
+        <main className="home-main">
+          <section className="hero-section">
+            <div className="hero-content">
+              <h1>Transform Your Learning Journey</h1>
+              <p>
+                Experience personalized, gamified education powered by AI. Earn points, unlock badges and achieve your goals.
+              </p>
+
+              <div className="landing-actions">
+                <Link to="/RegisterPage">
+                  <button className="btn-get-started">Get Started</button>
+                </Link>
+
+                <Link to="/CoursePage">
+                  <button className="btn-explore-courses">Explore Courses</button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="home-page">
