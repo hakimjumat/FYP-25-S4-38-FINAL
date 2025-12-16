@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, use } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "../CSS/HomePage.css";
 // import { auth } from "../firebase";
 // import { onAuthStateChanged } from "firebase/auth";
@@ -6,6 +6,7 @@ import { AuthContext } from "../auth/authContext";
 import { authFetch } from "../services/api";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import StudentDailyLoginStreak from "./Student/StudentDailyLoginStreak";
 
 import { Link, useNavigate } from "react-router-dom";
 
@@ -216,6 +217,13 @@ function HomePage() {
   const [profile, setProfile] = useState(null);
   const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDailyLogin, setShowDailyLogin] = useState(false);
+
+  useEffect(() => {
+    if (profile?.role === "student") {
+      setShowDailyLogin(true);
+    }
+  }, [profile?.role]);
 
   useEffect(() => {
     if (!user) return;
@@ -321,6 +329,15 @@ function HomePage() {
           )}
         </section>
       </main>
+
+      {profile?.role === "student" && (
+        <StudentDailyLoginStreak
+          isOpen={showDailyLogin}
+          close={() => setShowDailyLogin(false)}
+          claim={() => console.log("Daily reward claimed")}
+          loggedInDays={[1, 2, 3]}  // student login for 3 days
+        />
+      )}
     </div>
   );
 }
