@@ -6,6 +6,20 @@ class GamificationModel {
     this.collection = db.collection("gamification");
   }
 
+  // helper function to calculate level and points after adding new points
+  _calculateLevelProgress(currentLevel, currentPoints, pointsToAdd) {
+    let newPoints = currentPoints + pointsToAdd;
+    let newlevel = currentLevel;
+
+    // while points are 100 or more, level up and reduce points by 100
+    while (newPoints >= 100) {
+      newPoints -= 100;
+      newlevel += 1;
+    }
+
+    return { newlevel, newPoints };
+  }
+
   // Get gamification data for a student
   async getStudentGamification(uid) {
     try {
@@ -43,12 +57,23 @@ class GamificationModel {
           badges: [],
           streak: 0,
           lastLogin: new Date(),
+          loginHistory: [new Date()],
         });
       } else {
         // Update existing points
-        const currentPoints = doc.data().points || 0;
+        const data = doc.data();
+        const currentPoints = data.points || 0;
+        const currentLevel = data.level || 1;
+
+        const { newlevel, newPoints } = this._calculateLevelProgress(
+          currentLevel,
+          currentPoints,
+          pointsToAdd
+        );
+
         await docRef.update({
-          points: currentPoints + pointsToAdd,
+          points: newPoints,
+          level: newlevel,
         });
       }
 
@@ -192,12 +217,20 @@ class GamificationModel {
 
       //2. if success: add points and update lastDailyReward
       const currentPoints = data.points || 0;
+      const currentLevel = data.level || 1;
+
+      const { newlevel, newPoints } = this._calculateLevelProgress(
+        currentLevel,
+        currentPoints,
+        pointstoAdd
+      );
       await docRef.update({
-        points: currentPoints + pointstoAdd,
+        points: newPoints,
+        level: newlevel,
         lastDailyReward: now,
       });
 
-      return { success: true, points: currentPoints + pointstoAdd };
+      return { success: true, points: newPoints, level: newlevel };
     } catch (error) {
       throw new Error(`Failed to claim daily reward: ${error.message}`);
     }

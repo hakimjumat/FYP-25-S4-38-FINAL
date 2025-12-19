@@ -109,9 +109,8 @@ function ProfilePage() {
   };
 
   // --- HELPER: Calculate Level (Student Only) ---
-  const points = gamification?.points || 0;
-  const currentLevel = Math.floor(points / 100) + 1;
-  const currentLevelProgress = points % 100;
+  const currentLevel = gamification?.level || 1;
+  const currentLevelProgress = gamification?.points || 0;
 
   return (
     <div className="profile-page">
@@ -213,11 +212,19 @@ function ProfilePage() {
                   gamification.badges.map((badge, index) => (
                     <div key={index} className="badges" title={badge}>
                       <div className="badge_titles">
-                      🏅
-                      <img className="badge_icon" src={gamification.badges[index].img} alt="Badge" />
-                      <p className="badge_name">{gamification.badges[index].name}</p>
+                        🏅
+                        <img
+                          className="badge_icon"
+                          src={gamification.badges[index].img}
+                          alt="Badge"
+                        />
+                        <p className="badge_name">
+                          {gamification.badges[index].name}
+                        </p>
                       </div>
-                      <p className="badge_desc">{gamification.badges[index].desc}</p>
+                      <p className="badge_desc">
+                        {gamification.badges[index].desc}
+                      </p>
                     </div>
                   ))
                 ) : (

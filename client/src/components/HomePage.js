@@ -130,9 +130,8 @@ function Footer() {
 
 const StudentDashboard = ({ profile, gamification }) => {
   // Logic copied from ProfilePage.js to calculate level
-  const points = gamification?.points || 0;
-  const currentLevel = Math.floor(points / 100) + 1;
-  const currentLevelProgress = points % 100;
+  const currentLevel = gamification?.level || 1;
+  const currentLevelProgress = gamification?.points || 0;
 
   return (
     <div className="home-welcome-box">
