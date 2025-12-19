@@ -217,13 +217,10 @@ function HomePage() {
   const [profile, setProfile] = useState(null);
   const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showDailyLogin, setShowDailyLogin] = useState(false);
 
-  useEffect(() => {
-    if (profile?.role === "student") {
-      setShowDailyLogin(true);
-    }
-  }, [profile?.role]);
+  //new state to hold the specific days of the calender
+  const [calenderDays, setCalendarDays] = useState([]);
+  const [showDailyLogin, setShowDailyLogin] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -234,7 +231,7 @@ function HomePage() {
         // Note: Your authController.getCurrentUser returns data directly in result.data
         const identityRes = await authFetch(
           "http://localhost:5000/api/auth/current-user",
-          {},
+          { method: "GET" },
           user
         );
 
@@ -242,22 +239,45 @@ function HomePage() {
           const userProfile = identityRes.data;
           setProfile(userProfile);
 
-          // 2. If Student, fetch Gamification Data
-          // We use the student specific route for this
+          // 2. If Student, execute login logic to record daily login
+
           if (userProfile.role === "student") {
-            const studentRes = await authFetch(
-              "http://localhost:5000/api/students/profile",
-              {},
+            const loginRes = await authFetch(
+              "http://localhost:5000/api/students/login",
+              { method: "POST" },
               user
             );
+
+            if (loginRes.success) {
+              // update the state with specific calendar data from backend
+              setCalendarDays(loginRes.data.loggedInDays);
+
+              // update the streak here or wait for full profile fetch
+              setGamification((prev) => ({
+                ...prev,
+                streak: loginRes.data.streak,
+              }));
+
+              // show the pop
+              setShowDailyLogin(true);
+            }
+
+            // 3.fetch full Gamification Data
+            // We use the student specific route for this
+            const studentRes = await authFetch(
+              "http://localhost:5000/api/students/profile",
+              { method: "GET" },
+              user
+            );
+
             if (studentRes.success) {
               // api/students/profile returns nested data: { profile, gamification }
               setGamification(studentRes.data.gamification);
             }
           }
         }
-      } catch (err) {
-        console.error("Home page load error:", err);
+      } catch (error) {
+        console.error("Home page load error:", error);
       } finally {
         setLoading(false);
       }
@@ -265,6 +285,49 @@ function HomePage() {
 
     loadData();
   }, [user]);
+
+  const isRewardClaimedToday = () => {
+    if (!gamification?.lastDailyReard) return false;
+
+    const lastReward =
+      typeof gamification.lastDailyReard === "function"
+        ? gamification.lastDailyReard().toDate()
+        : new Date(gamification.lastDailyReard);
+
+    const now = new Date();
+    return lastReward.toDateString() === now.toDateString();
+  };
+
+  // handle claim reward from daily login streak
+  const handleClaimReward = async () => {
+    try {
+      // call claim reaward endpoint
+      const res = await authFetch(
+        "http://localhost:5000/api/students/claim-reward",
+        { method: "POST" },
+        user
+      );
+
+      if (res.success) {
+        console.log("Reward claimed:");
+
+        //refresh gamification data points
+        const updatedProfile = await authFetch(
+          "http://localhost:5000/api/students/profile",
+          { method: "GET" },
+          user
+        );
+
+        if (updatedProfile.success) {
+          setGamification(updatedProfile.data.gamification);
+        }
+      } else {
+        alert(res.message);
+      }
+    } catch (error) {
+      console.error("Error claiming reward:", error);
+    }
+  };
 
   if (!user) {
     return (
@@ -274,7 +337,8 @@ function HomePage() {
             <div className="hero-content">
               <h1>Transform Your Learning Journey</h1>
               <p>
-                Experience personalized, gamified education powered by AI. Earn points, unlock badges and achieve your goals.
+                Experience personalized, gamified education powered by AI. Earn
+                points, unlock badges and achieve your goals.
               </p>
 
               <div className="landing-actions">
@@ -283,14 +347,16 @@ function HomePage() {
                 </Link>
 
                 <Link to="/CoursePage">
-                  <button className="btn-explore-courses">Explore Courses</button>
+                  <button className="btn-explore-courses">
+                    Explore Courses
+                  </button>
                 </Link>
               </div>
             </div>
           </section>
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -330,12 +396,16 @@ function HomePage() {
         </section>
       </main>
 
+      {/* Daily Login Streak Modal */}
+
       {profile?.role === "student" && (
         <StudentDailyLoginStreak
           isOpen={showDailyLogin}
           close={() => setShowDailyLogin(false)}
-          claim={() => console.log("Daily reward claimed")}
-          loggedInDays={[1, 2, 3]}  // student login for 3 days
+          claim={handleClaimReward}
+          streak={gamification?.streak || 0}
+          loggedInDays={calenderDays}
+          isClaimed={isRewardClaimedToday()}
         />
       )}
     </div>

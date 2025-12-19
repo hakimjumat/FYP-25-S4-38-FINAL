@@ -22,4 +22,7 @@ router.post("/points", studentController.addPoints);
 // POST /api/students/login - Record daily login
 router.post("/login", studentController.recordLogin);
 
+// POST /api/students/claim-reward - Claim daily login reward
+router.post("/claim-reward", studentController.claimReward);
+
 module.exports = router;

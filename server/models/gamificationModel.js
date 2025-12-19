@@ -19,6 +19,7 @@ class GamificationModel {
           badges: [],
           streak: 0,
           lastLogin: null,
+          loginHistory: [],
         };
       }
 
@@ -76,46 +77,129 @@ class GamificationModel {
     }
   }
 
-  // daily log in streak update
+  // daily log in streak update + extract day numbers for the current month + update loginHistory
   async updateStreak(uid) {
     try {
       const docRef = this.collection.doc(uid);
       const doc = await docRef.get();
+      const now = new Date();
+      const todayDateStr = now.toDateString(); // e.g., "Fri Dec 19 2025"
+
+      // Helper: Extract day numbers (1-31) for the current month
+      const getDaysForCurrentMonth = (dateList) => {
+        return dateList
+          .filter(
+            (d) =>
+              d.getMonth() === now.getMonth() &&
+              d.getFullYear() === now.getFullYear()
+          )
+          .map((d) => d.getDate());
+      };
 
       if (!doc.exists) {
+        // Create new gamification profile if it doesn't exist
         await docRef.set({
+          points: 0,
+          level: 1,
+          badges: [],
           streak: 1,
-          lastLogin: new Date(),
+          lastLogin: now,
+          loginHistory: [now], // Initialize history with today
         });
-        return { streak: 1 };
+        return { streak: 1, loggedInDays: [now.getDate()] };
       }
 
       const data = doc.data();
-      const lastLogin = data.lastLogin?.toDate();
-      const now = new Date();
 
-      // Check if last login was yesterday
-      const oneDayAgo = new Date(now);
-      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      //convert firerestore timestamp to js date objects
+      // if lastLogin has toDate function, use it to convert, else assume it's already a Date object
+      const lastLogin = data.lastLogin?.toDate
+        ? data.lastLogin.toDate()
+        : new Date(data.lastLogin);
+
+      let rawHistory = data.loginHistory || [];
+      // convert each entry in rawHistory to Date object if it has toDate function
+      let historyDates = rawHistory.map((entry) =>
+        entry.toDate ? entry.toDate() : new Date(entry)
+      );
+
+      // check if already logged in today to prevent double counting
+      const alreadyLoggedInToday = historyDates.some(
+        (d) => d.toDateString() === todayDateStr
+      );
 
       let newStreak = data.streak || 0;
+      let finalHistory = historyDates;
 
-      if (lastLogin && lastLogin.toDateString() === oneDayAgo.toDateString()) {
-        // Consecutive day login
-        newStreak += 1;
-      } else if (lastLogin && lastLogin.toDateString() !== now.toDateString()) {
-        // Streak broken
-        newStreak = 1;
+      if (!alreadyLoggedInToday) {
+        // logic to calculate streak
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        // if last login was yesterday, increment streak. otherwise reset to 1
+        if (
+          lastLogin &&
+          lastLogin.toDateString() === yesterday.toDateString()
+        ) {
+          newStreak += 1;
+        } else {
+          newStreak = 1;
+        }
+
+        // add today to history
+        finalHistory = [...historyDates, now];
+
+        //update database
+        await docRef.update({
+          streak: newStreak,
+          lastLogin: now,
+          loginHistory: finalHistory,
+        });
       }
 
-      await docRef.update({
+      // return the data neeed to display login calendar
+      return {
         streak: newStreak,
-        lastLogin: now,
-      });
-
-      return { streak: newStreak };
+        loggedInDays: getDaysForCurrentMonth(finalHistory),
+      };
     } catch (error) {
       throw new Error(`Failed to update streak: ${error.message}`);
+    }
+  }
+
+  async claimDailyReward(uid, pointstoAdd) {
+    try {
+      const docRef = this.collection.doc(uid);
+      const doc = await docRef.get();
+      const now = new Date();
+      const todayDateStr = now.toDateString(); // e.g., "Fri Dec 19 2025"
+
+      if (!doc.exists) {
+        throw new Error("User profile not found");
+      }
+
+      const data = doc.data();
+
+      // 1. check if reward already claimed today
+      if (data.lastDailyReward) {
+        const lastRewardDate = data.lastDailyReward.toDate
+          ? data.lastDailyReward.toDate()
+          : new Date(data.lastDailyReward);
+        if (lastRewardDate.toDateString() === todayDateStr) {
+          return { success: false, message: "Reward already claimed today" };
+        }
+      }
+
+      //2. if success: add points and update lastDailyReward
+      const currentPoints = data.points || 0;
+      await docRef.update({
+        points: currentPoints + pointstoAdd,
+        lastDailyReward: now,
+      });
+
+      return { success: true, points: currentPoints + pointstoAdd };
+    } catch (error) {
+      throw new Error(`Failed to claim daily reward: ${error.message}`);
     }
   }
 }

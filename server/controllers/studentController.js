@@ -117,6 +117,25 @@ class StudentController {
       next(error);
     }
   }
-}
 
+  async claimReward(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      // harcoding points on server side for security (daily login = +10)
+      const result = await gamificationModel.claimDailyReward(uid, 10);
+
+      if (!result.success) {
+        return res.status(400).json(result);
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Daily login reward claimed successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+}
 module.exports = new StudentController();
