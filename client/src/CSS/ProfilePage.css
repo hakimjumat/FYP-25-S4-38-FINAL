@@ -267,12 +267,18 @@ h2 {
 
 .badges {
   display: flex;
-  align-items: center;     /* vertically center items */
-  gap: 16px;               /* space between image, name, desc */
-  padding: 12px;
+  flex-direction: column;
+  padding: 14px;
   background: #f8f9fb;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.badge_titles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
 /* Badge image */
