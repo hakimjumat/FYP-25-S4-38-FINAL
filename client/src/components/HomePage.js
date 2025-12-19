@@ -128,43 +128,57 @@ function Footer() {
 
 // --- Dashboard Views ---
 
-const StudentDashboard = ({ profile, gamification }) => (
-  <div className="home-welcome-box">
-    <div className="dashboard-header">
-      <h2>🎓 Student Dashboard</h2>
-      <p className="home-logged-in-text">
-        Welcome back, <strong>{profile?.firstName}</strong>!
-      </p>
-    </div>
+const StudentDashboard = ({ profile, gamification }) => {
+  // Logic copied from ProfilePage.js to calculate level
+  const points = gamification?.points || 0;
+  const currentLevel = Math.floor(points / 100) + 1;
+  const currentLevelProgress = points % 100;
 
-    <div className="action-row">
-      <Link to="/ProfilePage">
-        <button className="dashboard-btn">My Profile</button>
-      </Link>
-      <button className="dashboard-btn">My Courses</button>
-    </div>
+  return (
+    <div className="home-welcome-box">
+      <div className="dashboard-header">
+        <h2>🎓 Student Dashboard</h2>
+        <p className="home-logged-in-text">
+          Welcome back, <strong>{profile?.firstName}</strong>!
+        </p>
+      </div>
 
-    {gamification && (
-      <div className="home-progress-box">
-        <h3>Your Progress</h3>
-        <div className="stats-grid">
-          <div className="stat-item">
-            <span className="stat-value">{gamification.points || 0}</span>
-            <span className="stat-label">Points</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-value">{gamification.level || 1}</span>
-            <span className="stat-label">Level</span>
-          </div>
-          <div className="stat-item">
-            <span className="stat-value">{gamification.streak || 0}</span>
-            <span className="stat-label">Day Streak</span>
+      <div className="action-row">
+        <Link to="/ProfilePage">
+          <button className="dashboard-btn">My Profile</button>
+        </Link>
+        <button className="dashboard-btn">My Courses</button>
+      </div>
+
+      {gamification && (
+        <div className="home-progress-box">
+          <h3>Your Progress</h3>
+          <div className="level-box">
+            <div className="level-info">
+              <span className="level-label">
+                Level <strong>{currentLevel}</strong>
+              </span>
+              <span className="points-label">
+                {currentLevelProgress} / 100 XP
+              </span>
+            </div>
+
+            <div className="progress-bar-bg">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${currentLevelProgress}%` }}
+              ></div>
+            </div>
+
+            <p className="streak-text">
+              🔥 {gamification.streak || 0} Day Streak
+            </p>
           </div>
         </div>
-      </div>
-    )}
-  </div>
-);
+      )}
+    </div>
+  );
+};
 
 const InstructorDashboard = ({ profile }) => {
   const navigate = useNavigate(); // Add this hook
@@ -248,18 +262,14 @@ function HomePage() {
               user
             );
 
+            // Save the login result, but DO NOT open the modal yet
+            let currentStreak = 0;
+            let currentDays = [];
+
             if (loginRes.success) {
-              // update the state with specific calendar data from backend
-              setCalendarDays(loginRes.data.loggedInDays);
-
-              // update the streak here or wait for full profile fetch
-              setGamification((prev) => ({
-                ...prev,
-                streak: loginRes.data.streak,
-              }));
-
-              // show the pop
-              setShowDailyLogin(true);
+              currentDays = loginRes.data.loggedInDays;
+              currentStreak = loginRes.data.streak;
+              setCalendarDays(currentDays);
             }
 
             // 3.fetch full Gamification Data
@@ -272,7 +282,19 @@ function HomePage() {
 
             if (studentRes.success) {
               // api/students/profile returns nested data: { profile, gamification }
-              setGamification(studentRes.data.gamification);
+              const backendGamification = studentRes.data.gamification;
+
+              if (loginRes.success) {
+                // Update the streak from the login response
+                backendGamification.streak = currentStreak;
+              }
+
+              setGamification(backendGamification);
+
+              // now open the modal
+              if (loginRes.success) {
+                setShowDailyLogin(true);
+              }
             }
           }
         }
@@ -287,13 +309,25 @@ function HomePage() {
   }, [user]);
 
   const isRewardClaimedToday = () => {
-    if (!gamification?.lastDailyReard) return false;
+    // 1. Safety check
+    if (!gamification || !gamification.lastDailyReward) return false;
 
-    const lastReward =
-      typeof gamification.lastDailyReard === "function"
-        ? gamification.lastDailyReard().toDate()
-        : new Date(gamification.lastDailyReard);
+    const val = gamification.lastDailyReward;
+    let lastReward;
 
+    // 2. Handle different date formats
+    if (val && typeof val.toDate === "function") {
+      // Case A: It's a real Firestore object (rare on frontend)
+      lastReward = val.toDate();
+    } else if (val && val._seconds !== undefined) {
+      // Case B: It's a JSON-serialized Firestore Timestamp (This is what you have)
+      lastReward = new Date(val._seconds * 1000);
+    } else {
+      // Case C: It's a string or standard Date object
+      lastReward = new Date(val);
+    }
+
+    // 3. Compare with Today
     const now = new Date();
     return lastReward.toDateString() === now.toDateString();
   };
@@ -321,11 +355,30 @@ function HomePage() {
         if (updatedProfile.success) {
           setGamification(updatedProfile.data.gamification);
         }
-      } else {
-        alert(res.message);
       }
     } catch (error) {
-      console.error("Error claiming reward:", error);
+      // If the server says "Already claimed", treat it as a success for the UI
+      if (error.message.includes("Reward already claimed today")) {
+        console.log("Syncing: Reward was already claimed.");
+
+        // 1. Force the UI to update so the button becomes disabled
+        // We re-fetch the profile to get the 'lastDailyReward' date from the DB
+        const updatedProfile = await authFetch(
+          "http://localhost:5000/api/students/profile",
+          {},
+          user
+        );
+        if (updatedProfile.success) {
+          setGamification(updatedProfile.data.gamification);
+        }
+
+        // 2. Optional: Alert the user gently
+        alert("You have already claimed your reward for today!");
+      } else {
+        // Real errors (like server down)
+        console.error("Error claiming reward:", error);
+      }
+      // --- FIX ENDS HERE ---
     }
   };
 
