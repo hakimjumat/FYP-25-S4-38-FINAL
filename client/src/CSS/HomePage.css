@@ -6,17 +6,22 @@
   display: flex;
   flex-direction: column;
   background-color: white;
-  background:
-    linear-gradient(135deg, #667eea15 0%, #764ba215 50%, #4caf5015 100%),
+  background: linear-gradient(
+      135deg,
+      #667eea15 0%,
+      #764ba215 50%,
+      #4caf5015 100%
+    ),
     url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><path d='M40 0H0V40' fill='none' stroke='%23e5e5e5' stroke-width='1'/></svg>");
   background-size: 40px 40px;
   background-attachment: fixed;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 }
 
 .home-nav {
   width: 100%;
-  box-sizing: border-box;  
+  box-sizing: border-box;
   padding: 12px 40px;
   display: flex;
   justify-content: space-between;
@@ -54,7 +59,7 @@
 }
 
 .home-nav-menu li::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -5px;
   left: 0;
@@ -88,14 +93,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
-} 
+}
 
-.dropdown{
+.dropdown {
   position: relative;
 }
 
-.dropbtn{
-   background-color: transparent; 
+.dropbtn {
+  background-color: transparent;
   color: white;
   padding: 8px;
   font-size: 13px;
@@ -104,7 +109,7 @@
 }
 
 .dropbtn:hover {
-   color: rgb(61, 187, 61); 
+  color: rgb(61, 187, 61);
   background-color: transparent;
 }
 .dropdown-content {
@@ -119,14 +124,13 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.dropdown-content button{
+.dropdown-content button {
   width: 100%;
   padding: 8px 12px;
   border: none;
   background: none;
   text-align: left;
   cursor: pointer;
-  
 }
 .dropdown-content button:hover {
   background-color: darkgray;
@@ -209,7 +213,7 @@
 }
 
 .home-footer-columns p:hover {
-  color:rgb(61, 187, 61);
+  color: rgb(61, 187, 61);
   cursor: pointer;
 }
 
@@ -284,6 +288,40 @@
   background-color: rgb(69, 146, 39);
 }
 
+.level-box {
+  margin-top: 15px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+}
 
+.level-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+}
 
+.progress-bar-bg {
+  width: 100%;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
 
+.progress-bar-fill {
+  height: 100%;
+  background-color: #4cd137; /* Green color matching your theme */
+  transition: width 0.3s ease;
+}
+
+.streak-text {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #e17055; /* Orange for fire/streak */
+  font-size: 14px;
+}

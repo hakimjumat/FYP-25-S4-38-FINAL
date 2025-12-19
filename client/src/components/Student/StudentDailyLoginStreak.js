@@ -10,10 +10,9 @@ function StudentDailyLoginStreak({
   isClaimed = false,
   streak = 0,
   loggedInDays = [],
+  claim,
 }) {
   const [claimed, setClaimed] = useState(false); // check if the reward has been claimed
-  const [localDays, setLocalDays] = useState(loggedInDays);
-
   const now = new Date();
   const today = now.getDate();
   const month = now.getMonth();
@@ -29,8 +28,9 @@ function StudentDailyLoginStreak({
     setClaimed(true); // if user click on claim reward it will mark it as claimed (true)
 
     //execute backend action passed from parent component
-    if (typeof claim === "function") claim();
-
+    if (typeof claim === "function") {
+      claim();
+    }
     setTimeout(() => {
       alert("🎉You have claim the reward! Keep the streak going!🎉");
     }, 300);
@@ -92,12 +92,10 @@ function StudentDailyLoginStreak({
 
         <button
           className="daily-login-claim-button"
-          onClick={() => {
-            if (!isClaimed) claim();
-          }}
-          disabled={isClaimed}
+          onClick={handleClaimClick}
+          disabled={isClaimed || claimed}
         >
-          {isClaimed ? "Claimed" : "Claim today bonus!"}
+          {isClaimed || claimed ? "Claimed" : "Claim today bonus!"}
         </button>
       </div>
     </div>
