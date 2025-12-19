@@ -211,8 +211,11 @@ function ProfilePage() {
               <div className="badges-container">
                 {gamification?.badges && gamification.badges.length > 0 ? (
                   gamification.badges.map((badge, index) => (
-                    <div key={index} className="badge" title={badge}>
+                    <div key={index} className="badges" title={badge}>
                       🏅
+                      <img className="badge_icon" src={gamification.badges[index].img} alt="Badge" />
+                      <p className="badge_name">{gamification.badges[index].name}</p>
+                      <p className="badge_desc">{gamification.badges[index].desc}</p>
                     </div>
                   ))
                 ) : (
