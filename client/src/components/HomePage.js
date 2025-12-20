@@ -146,7 +146,9 @@ const StudentDashboard = ({ profile, gamification }) => {
         <Link to="/ProfilePage">
           <button className="dashboard-btn">My Profile</button>
         </Link>
-        <button className="dashboard-btn">My Courses</button>
+        <Link to="/CoursePage">
+          <button className="dashboard-btn">My Courses</button>
+        </Link>
       </div>
 
       {gamification && (
@@ -195,9 +197,9 @@ const InstructorDashboard = ({ profile }) => {
         {/* Update this button */}
         <button
           className="dashboard-btn primary"
-          onClick={() => navigate("/CreateCoursePage")}
+          onClick={() => navigate("/CourseEditorPage")}
         >
-          Create New Course
+          View Created Courses
         </button>
 
         <button className="dashboard-btn">Manage Students</button>

@@ -4,6 +4,7 @@
 
 const userModel = require("../models/userModel");
 const gamificationModel = require("../models/gamificationModel");
+const courseModel = require("../models/courseModel");
 
 class StudentController {
   // Get student profile along with gamification data
@@ -38,6 +39,40 @@ class StudentController {
           profile: userProfile,
           gamification: gamificationData,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAllCourses(req, res, next) {
+    try {
+      const courses = await courseModel.getAllCourses();
+      res.status(200).json({
+        success: true,
+        data: courses,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async enrollCourse(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId } = req.body;
+
+      if (!courseId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Course ID required" });
+      }
+
+      await courseModel.enrollStudent(courseId, uid);
+
+      res.status(200).json({
+        success: true,
+        message: "Enrolled successfully",
       });
     } catch (error) {
       next(error);

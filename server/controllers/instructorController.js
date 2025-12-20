@@ -29,6 +29,43 @@ class InstructorController {
     }
   }
 
+  // new get students for a specific course
+  async getCourseStudents(req, res, next) {
+    try {
+      const { courseId } = req.params;
+
+      // 1. Get the course to find enrolled IDs
+      const course = await courseModel.getCourseById(courseId);
+      if (!course) throw new Error("Course not found");
+
+      // Security check: ensure instructor owns this course
+      if (course.instructorId !== req.user.uid) {
+        return res
+          .status(403)
+          .json({ success: false, message: "Unauthorized" });
+      }
+
+      const studentIds = course.enrolledStudents || [];
+
+      // 2. Fetch user details for each ID
+      // (Assuming userModel has a method to get multiple users or we loop)
+      const studentsDetails = [];
+      for (const studentId of studentIds) {
+        const user = await userModel.getUserById(studentId);
+        if (user) {
+          studentsDetails.push(user);
+        }
+      }
+
+      res.status(200).json({
+        success: true,
+        data: studentsDetails,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // getting all courses created by the instructor
   async getMyCourses(req, res, next) {
     try {

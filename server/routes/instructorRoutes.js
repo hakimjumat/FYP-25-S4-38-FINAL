@@ -38,4 +38,7 @@ router.delete(
   instructorController.removeContent
 );
 
+// GET /api/instructors/students/:courseId
+router.get("/students/:courseId", instructorController.getCourseStudents);
+
 module.exports = router;
