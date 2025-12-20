@@ -12,6 +12,7 @@ class CourseModel {
         ...courseData,
         content: [], // Array to store lessons/files
         enrolledStudents: [],
+        reviews: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });
@@ -104,6 +105,50 @@ class CourseModel {
       return updatedContent;
     } catch (error) {
       throw new Error(`Error removing content: ${error.message}`);
+    }
+  }
+
+  // New: Get all courses for the Student Course Page
+  async getAllCourses() {
+    try {
+      const snapshot = await this.collection.get();
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error(`Error fetching all courses: ${error.message}`);
+    }
+  }
+
+  // New: Enroll a student
+  async enrollStudent(courseId, studentId) {
+    try {
+      const courseRef = this.collection.doc(courseId);
+      const doc = await courseRef.get();
+
+      if (!doc.exists) throw new Error("Course not found");
+
+      const currentEnrolled = doc.data().enrolledStudents || [];
+      if (currentEnrolled.includes(studentId)) {
+        throw new Error("Student already enrolled");
+      }
+
+      await courseRef.update({
+        enrolledStudents: [...currentEnrolled, studentId],
+      });
+
+      return { success: true };
+    } catch (error) {
+      throw new Error(`Error enrolling student: ${error.message}`);
+    }
+  }
+
+  // New: Get specific course details (helper)
+  async getCourseById(courseId) {
+    try {
+      const doc = await this.collection.doc(courseId).get();
+      if (!doc.exists) return null;
+      return { id: doc.id, ...doc.data() };
+    } catch (error) {
+      throw new Error(`Error fetching course: ${error.message}`);
     }
   }
 }

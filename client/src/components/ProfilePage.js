@@ -3,21 +3,25 @@ import { AuthContext } from "../auth/authContext";
 import { authFetch } from "../services/api";
 import "../CSS/ProfilePage.css";
 
+import BADGE_LIBRARY from "../services/badgeConfig";
+
 function ProfilePage() {
   const { user } = useContext(AuthContext);
   const [profileData, setProfileData] = useState(null);
   const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // --- EDIT MODAL STATE ---
+  // --- MODAL STATES ---
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false); // Controls the Badge Popup
+
   const [editForm, setEditForm] = useState({
     firstName: "",
     lastName: "",
     email: "",
     avatar: "",
   });
-  const AVATAR_OPTIONS = ["👨‍🎓", "👩‍🔬", "🦸"];
+  const AVATAR_OPTIONS = ["👨‍🎓", "👩‍🔬", "🦸", "🕵️", "🧑‍🚀"];
 
   // 1. Load Data
   const loadProfile = async () => {
@@ -51,11 +55,7 @@ function ProfilePage() {
     loadProfile();
   }, [user]);
 
-  // fix for runtime error when user(instructor/admin) logs out from profile page)
-  // If the user logs out, stop rendering immediately to prevent crashing
-  if (!user) {
-    return <div className="profile-page">Redirecting...</div>;
-  }
+  if (!user) return <div className="profile-page">Redirecting...</div>;
 
   // 2. Handle Edit Click
   const handleEditClick = () => {
@@ -80,12 +80,10 @@ function ProfilePage() {
         },
         user
       );
-
       setIsEditOpen(false);
-      loadProfile(); // Refresh UI
+      loadProfile();
       alert("Profile Updated!");
     } catch (err) {
-      console.error(err);
       alert("Failed to update profile");
     }
   };
@@ -96,21 +94,10 @@ function ProfilePage() {
   const displayName = `${profileData.firstName} ${profileData.lastName}`;
   const userRole = profileData.role || "student";
 
-  // --- HELPER: Get Dynamic "About Me" Text ---
-  const getAboutText = (role) => {
-    switch (role) {
-      case "instructor":
-        return "Passionate educator dedicated to student success and curriculum development.";
-      case "admin":
-        return "System Administrator managing platform operations and user accounts.";
-      default:
-        return "Student at the Incentive-Driven Learning Platform.";
-    }
-  };
-
-  // --- HELPER: Calculate Level (Student Only) ---
+  // Helpers
+  const points = gamification?.points || 0;
   const currentLevel = gamification?.level || 1;
-  const currentLevelProgress = gamification?.points || 0;
+  const currentLevelProgress = points;
 
   return (
     <div className="profile-page">
@@ -135,10 +122,14 @@ function ProfilePage() {
 
           <div className="about-section">
             <h2>About me</h2>
-            <p className="about-placeholder">{getAboutText(userRole)}</p>
+            <p className="about-placeholder">
+              {userRole === "instructor"
+                ? "Passionate educator dedicated to student success."
+                : "Student at the Incentive-Driven Learning Platform."}
+            </p>
           </div>
 
-          {/* DYNAMIC STATS SECTION */}
+          {/* DYNAMIC STATS */}
           {userRole === "student" && (
             <div className="courses-section">
               <h2>Current Progress</h2>
@@ -163,119 +154,132 @@ function ProfilePage() {
               </div>
             </div>
           )}
-
-          {/* Instructor Stats */}
-          {userRole === "instructor" && (
-            <div className="courses-section">
-              <h2>Teaching Stats</h2>
-              <ul className="stat-list">
-                <li>
-                  📚 Active Courses: <strong>3</strong>
-                </li>
-                <li>
-                  👨‍🎓 Students Enrolled: <strong>128</strong>
-                </li>
-                <li>
-                  ⭐ Instructor Rating: <strong>4.8/5</strong>
-                </li>
-              </ul>
-            </div>
-          )}
-
-          {/* Admin Stats */}
-          {userRole === "admin" && (
-            <div className="courses-section">
-              <h2>System Overview</h2>
-              <ul className="stat-list">
-                <li>
-                  👥 Total Users: <strong>1,240</strong>
-                </li>
-                <li>
-                  🟢 System Status:{" "}
-                  <strong style={{ color: "green" }}>Online</strong>
-                </li>
-                <li>
-                  ⚠️ Pending Reports: <strong>0</strong>
-                </li>
-              </ul>
-            </div>
-          )}
         </div>
 
         {/* RIGHT SECTION */}
         <div className="right-section">
+          {/* --- FIX: EARNED BADGES PREVIEW --- */}
           {userRole === "student" && (
             <div className="badges-section">
-              <h2>Earned Badges</h2>
-              <div className="badges-container">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h2>Earned Badges</h2>
+                {gamification?.badges?.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                    onClick={() => setIsBadgeModalOpen(true)}
+                  >
+                    View All ➔
+                  </span>
+                )}
+              </div>
+
+              {/* Click container to open modal */}
+              <div
+                className="badges-container"
+                onClick={() => setIsBadgeModalOpen(true)}
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
                 {gamification?.badges && gamification.badges.length > 0 ? (
-                  gamification.badges.map((badge, index) => (
-                    <div key={index} className="badges" title={badge}>
-                      <div className="badge_titles">
-                        🏅
-                        <img
-                          className="badge_icon"
-                          src={gamification.badges[index].img}
-                          alt="Badge"
-                        />
-                        <p className="badge_name">
-                          {gamification.badges[index].name}
-                        </p>
+                  // LOGIC: Take only the first 3 badges
+                  gamification.badges.slice(0, 3).map((badge, index) => {
+                    // This ensures we get a clean String, even if the DB has "dirty" objects
+                    let finalName = "";
+
+                    if (typeof badge === "string") {
+                      finalName = badge;
+                    } else if (typeof badge === "object" && badge !== null) {
+                      // If DB accidentally saved it as an object
+                      finalName = badge.name || "Unknown";
+                    }
+
+                    // --- 2. DEBUGGING (Check your Console to see this) ---
+                    console.log(`Badge #${index}:`, finalName);
+                    console.log(
+                      "Found in Library?",
+                      BADGE_LIBRARY[finalName] ? "YES" : "NO"
+                    );
+
+                    // --- 3. LOOKUP (Use finalName, not badgeName) ---
+                    const badgeInfo = BADGE_LIBRARY[finalName] || {
+                      icon: "❓",
+                      color: "#eee",
+                    };
+
+                    return (
+                      <div
+                        key={index}
+                        className="badges"
+                        title={finalName} // Use finalName here too
+                        style={{
+                          backgroundColor: badgeInfo.color,
+                          width: "60px",
+                          height: "60px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "10px",
+                          fontSize: "30px",
+                        }}
+                      >
+                        {badgeInfo.icon}
                       </div>
-                      <p className="badge_desc">
-                        {gamification.badges[index].desc}
-                      </p>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p className="no-badges-text">
                     No badges yet. Keep learning!
                   </p>
                 )}
-              </div>
-            </div>
-          )}
 
-          {userRole !== "student" && (
-            <div className="badges-section">
-              <h2>Account Details</h2>
-              <div className="info-box">
-                <p>
-                  <strong>ID:</strong> {user.uid.substring(0, 10)}...
-                </p>
-                <p>
-                  <strong>Joined:</strong>{" "}
-                  {new Date(
-                    profileData.createdAt?._seconds * 1000 || Date.now()
-                  ).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Access Level:</strong> Full
-                </p>
+                {/* Visual indicator if there are more than 3 */}
+                {gamification?.badges?.length > 3 && (
+                  <div
+                    style={{
+                      alignSelf: "center",
+                      color: "#888",
+                      fontSize: "12px",
+                    }}
+                  >
+                    +{gamification.badges.length - 3} more...
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           <div className="action-buttons">
             <button onClick={handleEditClick}>Edit Profile</button>
-            {userRole === "student" ? <button>My Courses</button> : null}
-            {userRole === "instructor" ? <button>Create Course</button> : null}
-            {userRole === "admin" ? <button>User Management</button> : null}
+            {userRole === "student" && <button>My Courses</button>}
           </div>
         </div>
 
-        {/* === EDIT MODAL === */}
+        {/* === EDIT PROFILE MODAL === */}
         {isEditOpen && (
           <div className="profile-modal-overlay">
             <div className="profile-modal-box">
               <h2>Edit Profile</h2>
               <form onSubmit={handleEditSubmit}>
-                {/* Avatar Selector */}
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "center",
-                    gap: "15px",
+                    gap: "10px",
                     margin: "20px 0",
                   }}
                 >
@@ -285,7 +289,7 @@ function ProfilePage() {
                       key={opt}
                       onClick={() => setEditForm({ ...editForm, avatar: opt })}
                       style={{
-                        fontSize: "30px",
+                        fontSize: "24px",
                         background:
                           editForm.avatar === opt ? "#e0e0ff" : "transparent",
                         border:
@@ -293,8 +297,8 @@ function ProfilePage() {
                             ? "2px solid #6c5ce7"
                             : "1px solid #ddd",
                         borderRadius: "50%",
-                        width: "60px",
-                        height: "60px",
+                        width: "50px",
+                        height: "50px",
                         cursor: "pointer",
                       }}
                     >
@@ -302,7 +306,6 @@ function ProfilePage() {
                     </button>
                   ))}
                 </div>
-
                 <input
                   className="profile-modal-input"
                   placeholder="First Name"
@@ -311,7 +314,6 @@ function ProfilePage() {
                     setEditForm({ ...editForm, firstName: e.target.value })
                   }
                 />
-
                 <input
                   className="profile-modal-input"
                   placeholder="Last Name"
@@ -320,30 +322,6 @@ function ProfilePage() {
                     setEditForm({ ...editForm, lastName: e.target.value })
                   }
                 />
-
-                {/* LOCKED EMAIL FIELD */}
-                <div style={{ textAlign: "left", width: "100%" }}>
-                  <label
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      marginLeft: "5px",
-                    }}
-                  >
-                    Email Address (Locked)
-                  </label>
-                  <input
-                    className="profile-modal-input"
-                    value={editForm.email}
-                    disabled // <--- This disables typing
-                    style={{
-                      backgroundColor: "#f5f5f5",
-                      color: "#888",
-                      cursor: "not-allowed",
-                    }} // Visual feedback
-                  />
-                </div>
-
                 <button type="submit" className="profile-modal-btn">
                   Save Changes
                 </button>
@@ -355,6 +333,97 @@ function ProfilePage() {
                   Cancel
                 </button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* === NEW: FULL BADGE COLLECTION MODAL === */}
+        {isBadgeModalOpen && (
+          <div
+            className="profile-modal-overlay"
+            onClick={() => setIsBadgeModalOpen(false)}
+          >
+            <div
+              className="profile-modal-box"
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: "500px", maxWidth: "90%" }}
+            >
+              <h2>🏅 My Badge Collection</h2>
+              <p style={{ marginBottom: "20px", color: "#666" }}>
+                You have earned {gamification?.badges?.length || 0} badges!
+              </p>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "15px",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                }}
+              >
+                {gamification?.badges && gamification.badges.length > 0 ? (
+                  gamification.badges.map((badgeName, index) => {
+                    const badgeInfo = BADGE_LIBRARY[badgeName] || {
+                      icon: "❓",
+                      description: "Unknown Badge",
+                      color: "#f0f0f0",
+                    };
+
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          border: "1px solid #eee",
+                          borderRadius: "10px",
+                          padding: "15px",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          textAlign: "center",
+                          backgroundColor: "#fafafa",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "40px",
+                            background: badgeInfo.color,
+                            borderRadius: "50%",
+                            width: "70px",
+                            height: "70px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          {badgeInfo.icon}
+                        </div>
+                        <strong
+                          style={{ fontSize: "16px", marginBottom: "5px" }}
+                        >
+                          {badgeName}
+                        </strong>
+                        <p
+                          style={{ fontSize: "12px", color: "#555", margin: 0 }}
+                        >
+                          {badgeInfo.description}
+                        </p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p>No badges found.</p>
+                )}
+              </div>
+
+              <button
+                onClick={() => setIsBadgeModalOpen(false)}
+                className="profile-modal-btn"
+                style={{ marginTop: "20px" }}
+              >
+                Close
+              </button>
             </div>
           </div>
         )}

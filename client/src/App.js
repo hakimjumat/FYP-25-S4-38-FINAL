@@ -17,6 +17,8 @@ import RegisterPage from "./components/RegisterPage";
 import ProfilePage from "./components/ProfilePage";
 import CourseEditorPage from "./components/Instructor/CourseEditorPage";
 
+import CoursePage from "./components/Student/CoursePage";
+
 function App() {
   return (
     <AuthProvider>
@@ -34,6 +36,8 @@ function App() {
               <Route path="/ProfilePage" element={<ProfilePage />} />
 
               <Route path="/CourseEditorPage" element={<CourseEditorPage />} />
+
+              <Route path="/CoursePage" element={<CoursePage />} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

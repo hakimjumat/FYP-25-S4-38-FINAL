@@ -5,17 +5,21 @@ import { storage } from "../../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "../../CSS/CourseEditorPage.css";
 
+// CHECK THIS PATH: Ensure badgeConfig.js is actually in the 'services' folder.
+// If it is in 'config', change this to: "../../config/badgeConfig"
+import BADGE_LIBRARY from "../../services/badgeConfig";
+
 function CourseEditorPage() {
   const { user } = useContext(AuthContext);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // --- VIEW STATE ---
-  const [selectedCourse, setSelectedCourse] = useState(null); // If null, show list. If set, show dashboard.
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
   // --- MODAL STATE ---
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(null); // 'create_course', 'upload_content', 'edit_details', 'delete_course'
+  const [modalType, setModalType] = useState(null);
   const [modalStep, setModalStep] = useState(1);
 
   // --- FORM DATA STATE ---
@@ -23,6 +27,11 @@ function CourseEditorPage() {
   const [uploadFile, setUploadFile] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // --- STUDENT VIEW STATE ---
+  const [viewStudentsModalOpen, setViewStudentsModalOpen] = useState(false);
+  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [selectedStudentForBadge, setSelectedStudentForBadge] = useState(null);
 
   // === DATA FETCHING ===
   const fetchCourses = async () => {
@@ -34,7 +43,6 @@ function CourseEditorPage() {
       );
       if (res.success) setCourses(res.data);
 
-      // If we are viewing a specific course, update its data too
       if (selectedCourse) {
         const updated = res.data.find((c) => c.id === selectedCourse.id);
         if (updated) setSelectedCourse(updated);
@@ -52,7 +60,6 @@ function CourseEditorPage() {
 
   // === ACTION HANDLERS ===
 
-  // 1. OPEN MODALS
   const openCreateModal = () => {
     setModalType("create_course");
     setFormData({ title: "", description: "" });
@@ -63,7 +70,7 @@ function CourseEditorPage() {
   const openUploadModal = () => {
     setModalType("upload_content");
     setUploadFile(null);
-    setModalStep(1); // Reusing Step 1 as the upload UI
+    setModalStep(1);
     setIsModalOpen(true);
   };
 
@@ -86,9 +93,52 @@ function CourseEditorPage() {
     setModalLoading(false);
   };
 
-  // 2. SUBMIT HANDLERS
+  // --- STUDENT HANDLERS ---
+  const handleViewStudents = async () => {
+    if (!selectedCourse) return;
+    setModalLoading(true);
+    try {
+      const res = await authFetch(
+        `http://localhost:5000/api/instructors/students/${selectedCourse.id}`,
+        {},
+        user
+      );
+      if (res.success) {
+        setEnrolledStudents(res.data);
+        setViewStudentsModalOpen(true);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to fetch students");
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
-  // Create New Course
+  const handleAwardBadge = async (badgeName) => {
+    if (!selectedStudentForBadge) return;
+    try {
+      await authFetch(
+        "http://localhost:5000/api/instructors/award-badge",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            studentId: selectedStudentForBadge.uid,
+            badgeName: badgeName,
+          }),
+        },
+        user
+      );
+      alert(`Badge '${badgeName}' awarded!`);
+      setSelectedStudentForBadge(null);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to award badge");
+    }
+  };
+
+  // === SUBMIT HANDLERS ===
+
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
@@ -103,7 +153,6 @@ function CourseEditorPage() {
       );
 
       if (res.success) {
-        // Instead of moving to upload, we just finish creation and refresh
         closeModal();
         await fetchCourses();
         alert("Course Created!");
@@ -116,12 +165,10 @@ function CourseEditorPage() {
     }
   };
 
-  // Upload Content
   const handleUploadSubmit = async () => {
     if (!uploadFile) return;
     setModalLoading(true);
     try {
-      // Upload to Firebase
       const storageRef = ref(
         storage,
         `courses/${selectedCourse.id}/${uploadFile.name}`
@@ -129,7 +176,6 @@ function CourseEditorPage() {
       await uploadBytes(storageRef, uploadFile);
       const url = await getDownloadURL(storageRef);
 
-      // Save to Backend
       await authFetch(
         "http://localhost:5000/api/instructors/add-content",
         {
@@ -144,8 +190,8 @@ function CourseEditorPage() {
         user
       );
 
-      setModalStep(2); // Show success
-      await fetchCourses(); // Refresh data behind modal
+      setModalStep(2);
+      await fetchCourses();
     } catch (err) {
       console.error(err);
       alert("Upload failed");
@@ -154,7 +200,6 @@ function CourseEditorPage() {
     }
   };
 
-  // Update Details
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     setModalLoading(true);
@@ -177,19 +222,16 @@ function CourseEditorPage() {
     }
   };
 
-  // Delete Course
   const handleDeleteCourse = async () => {
     if (!window.confirm("Are you sure? This cannot be undone.")) return;
     setModalLoading(true);
     try {
       await authFetch(
         `http://localhost:5000/api/instructors/delete-course/${selectedCourse.id}`,
-        {
-          method: "DELETE",
-        },
+        { method: "DELETE" },
         user
       );
-      setSelectedCourse(null); // Go back to grid
+      setSelectedCourse(null);
       closeModal();
       await fetchCourses();
     } catch (err) {
@@ -200,15 +242,12 @@ function CourseEditorPage() {
     }
   };
 
-  // Delete Specific Content File
   const handleDeleteFile = async (contentId) => {
     if (!window.confirm("Delete this file?")) return;
     try {
       await authFetch(
         `http://localhost:5000/api/instructors/remove-content/${selectedCourse.id}/${contentId}`,
-        {
-          method: "DELETE",
-        },
+        { method: "DELETE" },
         user
       );
       await fetchCourses();
@@ -218,7 +257,7 @@ function CourseEditorPage() {
     }
   };
 
-  // Drag & Drop Helpers
+  // Drag & Drop
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -291,7 +330,6 @@ function CourseEditorPage() {
             <p>{selectedCourse.description}</p>
           </div>
 
-          {/* THE 8 BUTTON GRID */}
           <div className="dashboard-grid">
             <button className="dash-btn" onClick={openUploadModal}>
               📤 Upload Content
@@ -304,7 +342,9 @@ function CourseEditorPage() {
             </button>
             <button className="dash-btn">🌐 Enable Translation</button>
             <button className="dash-btn">🎁 Course Incentivization</button>
-            <button className="dash-btn">👥 View Students</button>
+            <button className="dash-btn" onClick={handleViewStudents}>
+              👥 View Students
+            </button>
             <button className="dash-btn">📊 Analyze Data</button>
           </div>
 
@@ -318,7 +358,7 @@ function CourseEditorPage() {
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal-box">
-            {/* 1. CREATE COURSE MODAL */}
+            {/* 1. CREATE */}
             {modalType === "create_course" && (
               <form onSubmit={handleCreateSubmit}>
                 <h2>Create New Course</h2>
@@ -353,7 +393,7 @@ function CourseEditorPage() {
               </form>
             )}
 
-            {/* 2. UPLOAD CONTENT MODAL */}
+            {/* 2. UPLOAD */}
             {modalType === "upload_content" && (
               <div>
                 {modalStep === 1 ? (
@@ -401,7 +441,7 @@ function CourseEditorPage() {
               </div>
             )}
 
-            {/* 3. EDIT / VIEW DETAILS MODAL */}
+            {/* 3. EDIT */}
             {modalType === "edit_details" && (
               <div>
                 <h2>Edit Course Details</h2>
@@ -453,12 +493,10 @@ function CourseEditorPage() {
               </div>
             )}
 
-            {/* 4. DELETE MODAL */}
+            {/* 4. DELETE */}
             {modalType === "delete_course" && (
               <div>
                 <h2>Delete Management</h2>
-                <p>Manage files or delete the whole course.</p>
-
                 <div
                   className="file-list"
                   style={{
@@ -484,7 +522,6 @@ function CourseEditorPage() {
                     </div>
                   ))}
                 </div>
-
                 <hr style={{ margin: "20px 0" }} />
                 <button
                   className="modal-btn"
@@ -498,6 +535,176 @@ function CourseEditorPage() {
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* === VIEW STUDENT MODAL === */}
+      {viewStudentsModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ width: "600px" }}>
+            <h2>Students Enrolled in {selectedCourse.title}</h2>
+
+            {/* LIST OF STUDENTS */}
+            <div
+              className="file-list"
+              style={{ maxHeight: "300px", overflowY: "auto" }}
+            >
+              {enrolledStudents.length > 0 ? (
+                enrolledStudents.map((student) => (
+                  <div
+                    key={student.uid}
+                    className="file-item"
+                    style={{ alignItems: "center" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <div style={{ fontSize: "24px" }}>
+                        {student.avatar || "👨‍🎓"}
+                      </div>
+                      <div>
+                        <strong>
+                          {student.firstName} {student.lastName}
+                        </strong>
+                        <div style={{ fontSize: "12px", color: "#666" }}>
+                          {student.email}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AWARD BADGE BUTTON */}
+                    <button
+                      className="modal-btn"
+                      style={{
+                        fontSize: "11px",
+                        padding: "4px 10px",
+                        border: "1px solid black",
+                        background: "white",
+                        color: "black",
+                        width: "auto",
+                        marginLeft: "15px",
+                        whiteSpace: "nowrap",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => setSelectedStudentForBadge(student)}
+                    >
+                      🏅 Award Badge
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p>No students enrolled yet.</p>
+              )}
+            </div>
+            {/* --- END OF STUDENT LIST --- */}
+
+            {/* --- BADGE SELECTION (Now Outside the List Loop) --- */}
+            {selectedStudentForBadge && (
+              <div
+                style={{
+                  marginTop: "20px",
+                  background: "#f8f9fa",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  border: "1px solid #eee",
+                }}
+              >
+                <h4 style={{ marginBottom: "15px" }}>
+                  Award Badge to{" "}
+                  <span style={{ color: "#6c5ce7" }}>
+                    {selectedStudentForBadge.firstName}
+                  </span>
+                </h4>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fill, minmax(140px, 1fr))",
+                    gap: "10px",
+                  }}
+                >
+                  {Object.entries(BADGE_LIBRARY).map(([name, details]) => (
+                    <button
+                      key={name}
+                      onClick={() => handleAwardBadge(name)}
+                      className="badge-select-btn"
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        padding: "10px",
+                        cursor: "pointer",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        backgroundColor: "white",
+                        transition: "transform 0.2s",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.currentTarget.style.transform = "scale(1.05)")
+                      }
+                      onMouseOut={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+                    >
+                      <div
+                        style={{
+                          fontSize: "24px",
+                          background: details.color,
+                          borderRadius: "50%",
+                          width: "40px",
+                          height: "40px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        {details.icon}
+                      </div>
+                      <span
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          textAlign: "center",
+                        }}
+                      >
+                        {name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setSelectedStudentForBadge(null)}
+                  style={{
+                    marginTop: "15px",
+                    fontSize: "12px",
+                    background: "none",
+                    border: "none",
+                    color: "#666",
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            <div style={{ marginTop: "20px", textAlign: "right" }}>
+              <button
+                className="text-btn"
+                onClick={() => setViewStudentsModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

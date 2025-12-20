@@ -25,4 +25,10 @@ router.post("/login", studentController.recordLogin);
 // POST /api/students/claim-reward - Claim daily login reward
 router.post("/claim-reward", studentController.claimReward);
 
+// GET /api/students/courses - Get all courses
+router.get("/courses", studentController.getAllCourses);
+
+// POST /api/students/enroll - Enroll in a course
+router.post("/enroll", studentController.enrollCourse);
+
 module.exports = router;
