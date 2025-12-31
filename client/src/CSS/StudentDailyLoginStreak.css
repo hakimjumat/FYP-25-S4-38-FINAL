@@ -22,6 +22,18 @@
   position: relative;
 }
 
+.daily-login-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  color: black;
+}
+
 .daily-login-title {
   font-size: 24px;
   font-weight: 600;

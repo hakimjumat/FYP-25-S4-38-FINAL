@@ -41,6 +41,10 @@ function StudentDailyLoginStreak({
   return (
     <div className="daily-login-background" onClick={close}>
       <div className="daily-login-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="daily-login-close" onClick={close}>
+          X
+        </button>
+        
         <h2 className="daily-login-title">Daily Login</h2>
         <p className="daily-login-word">Stay consistent with learning! 🔥</p>
 
