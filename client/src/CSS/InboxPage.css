@@ -38,7 +38,7 @@
 }
 
 .inbox-tabs button.active{
-    background-color: #4f46e5;
+    background-color: rgb(124, 147, 224);
     color: white;
 }
 
