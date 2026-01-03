@@ -14,6 +14,10 @@ function AssessmentEditorPage() {
   const [questions, setQuestions] = useState([]);
   const [assessmentType, setAssessmentType] = useState("quiz"); // New state for assessment type
 
+  // helper function to go back correctly instead of routing to CourseEditorPage directly by passing courseId in state
+  const goBackToCourse = () => {
+    navigate("/CourseEditorPage", { state: { courseIdToOpen: courseId } });
+  };
   // added type to default question state
   const [currentQ, setCurrentQ] = useState({
     type: "mcq", // <--- NEW
@@ -78,7 +82,7 @@ function AssessmentEditorPage() {
       className="editor-container"
       style={{ maxWidth: "800px", margin: "0 auto" }}
     >
-      <button className="back-link" onClick={() => navigate(-1)}>
+      <button className="back-link" onClick={goBackToCourse}>
         ← Back to Course
       </button>
 

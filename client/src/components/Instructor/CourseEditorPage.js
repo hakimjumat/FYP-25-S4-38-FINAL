@@ -5,7 +5,7 @@ import { storage } from "../../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "../../CSS/CourseEditorPage.css";
 
-import { Link, resolvePath, useNavigate } from "react-router-dom";
+import { Link, resolvePath, useNavigate, useLocation } from "react-router-dom";
 
 // CHECK THIS PATH: Ensure badgeConfig.js is actually in the 'services' folder.
 // If it is in 'config', change this to: "../../config/badgeConfig"
@@ -15,7 +15,7 @@ function CourseEditorPage() {
   const { user } = useContext(AuthContext);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const location = useLocation();
   // --- VIEW STATE ---
   const [selectedCourse, setSelectedCourse] = useState(null);
 
@@ -63,6 +63,20 @@ function CourseEditorPage() {
   useEffect(() => {
     if (user) fetchCourses();
   }, [user]);
+
+  useEffect(() => {
+    if (courses.length > 0 && location.state?.courseIdToOpen) {
+      const foundCourse = courses.find(
+        (c) => c.id === location.state.courseIdToOpen
+      );
+      if (foundCourse) {
+        setSelectedCourse(foundCourse);
+
+        // To prevent re-opening on future navigations
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [courses, location.state, navigate]);
 
   // === ACTION HANDLERS ===
 
@@ -345,8 +359,13 @@ function CourseEditorPage() {
             <button className="dash-btn" onClick={openUploadModal}>
               📤 Upload Content
             </button>
-            <button className="dash-btn" onClick={()=> navigate(`/instructor/course/${selectedCourse.id}/assessment`)}>
-             📝 Create Quiz / Test
+            <button
+              className="dash-btn"
+              onClick={() =>
+                navigate(`/instructor/course/${selectedCourse.id}/assessment`)
+              }
+            >
+              📝 Create Quiz / Test
             </button>
             <button className="dash-btn" onClick={openEditModal}>
               ✏️ Edit Content / View Files
