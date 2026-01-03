@@ -176,6 +176,28 @@ function CoursePage() {
                 </p>
               )}
             </div>
+              
+            {selectedCourse.enrolledStudents?.includes(user.uid) && (  // selectedCourse.enrolledStudents = array of studentID, user.uid = current logged in student, .includes(user.uid) = check whether student is enrolled 
+              <> 
+              <hr/>
+              
+              <h3>Course Materials</h3>
+              
+              {selectedCourse.content && selectedCourse.content.length > 0 ? (  // prevent from crashing when there is no file inside
+                <div className="file-list student-file-list">
+                  {selectedCourse.content.map((file) => (   // uploaded files become visible
+                    <div key={file.id} className="file-item">
+                      <a href={file.fileUrl} target="_blank" rel="noreferrer">
+                        {file.title}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              ):(
+                <p className="empty-text">No materials uploaded.</p>
+              )}
+              </>
+            )}
 
             <div
               style={{
