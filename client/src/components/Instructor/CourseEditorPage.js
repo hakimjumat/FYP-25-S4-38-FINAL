@@ -80,12 +80,6 @@ function CourseEditorPage() {
     setIsModalOpen(true);
   };
 
-  const openQuizEditor = () => {
-    setModalType("quiz_editor");
-    setModalStep(1);
-    setIsModalOpen(true);
-  }
-
   const openEditModal = () => {
     setModalType("edit_details");
     setFormData({
@@ -213,9 +207,9 @@ function CourseEditorPage() {
   };
 
   const handleNewQuizPageLoad = async (e) => {
-    navigate("/QuizEditorPage")
-    setCourseQuiz(null)
-  }
+    navigate("/QuizEditorPage");
+    setCourseQuiz(null);
+  };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
@@ -351,8 +345,8 @@ function CourseEditorPage() {
             <button className="dash-btn" onClick={openUploadModal}>
               📤 Upload Content
             </button>
-            <button className="dash-btn" onClick={openQuizEditor}>
-              Add / Edit Quizes
+            <button className="dash-btn" onClick={()=> navigate(`/instructor/course/${selectedCourse.id}/assessment`)}>
+             📝 Create Quiz / Test
             </button>
             <button className="dash-btn" onClick={openEditModal}>
               ✏️ Edit Content / View Files
@@ -421,14 +415,11 @@ function CourseEditorPage() {
                   Course Quizes
                 </h3>
                 <div className="file-list">
-                  {selectedCourse.quizes &&
-                  selectedCourse.quizes.length > 0 ? (
+                  {selectedCourse.quizes && selectedCourse.quizes.length > 0 ? (
                     selectedCourse.quizes.map((quiz) => (
                       <div key={quiz.id} className="quiz-item">
                         <span>📄 {quiz.title}</span>
-                        <button onClick={setCourseQuiz(quiz)}>
-                          Edit
-                        </button>
+                        <button onClick={setCourseQuiz(quiz)}>Edit</button>
                       </div>
                     ))
                   ) : (

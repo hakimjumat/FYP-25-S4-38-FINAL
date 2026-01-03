@@ -22,6 +22,7 @@ router.post("/add-content", instructorController.addCourseContent);
 // GET /api/instructor/my-courses - Get all courses created by the instructor
 router.get("/my-courses", instructorController.getMyCourses);
 
+// POST /api/instructors/add-assessment - Create a new assessment for a course
 router.post(
   "/add-assessment",
   verifyToken,

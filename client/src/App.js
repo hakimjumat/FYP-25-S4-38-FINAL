@@ -16,7 +16,7 @@ import HomePage, { NavBar, Footer } from "./components/HomePage";
 import RegisterPage from "./components/RegisterPage";
 import ProfilePage from "./components/ProfilePage";
 import CourseEditorPage from "./components/Instructor/CourseEditorPage";
-import QuizEditorPage from "./components/Instructor/QuizEditorPage";
+import AssessmentEditorPage from "./components/Instructor/AssessmentEditorPage";
 
 import CoursePage from "./components/Student/CoursePage";
 
@@ -38,11 +38,18 @@ function App() {
 
               <Route path="/CourseEditorPage" element={<CourseEditorPage />} />
 
-              <Route path = "/QuizEditorPage" element={<QuizEditorPage />}/>
+              <Route
+                path="/AssessmentEditorPage"
+                element={<AssessmentEditorPage />}
+              />
 
               <Route path="/CoursePage" element={<CoursePage />} />
 
               <Route path="*" element={<Navigate to="/" />} />
+              <Route
+                path="/instructor/course/:courseId/assessment"
+                element={<AssessmentEditorPage />}
+              />
             </Routes>
           </div>
           <Footer />
