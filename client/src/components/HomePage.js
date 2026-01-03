@@ -134,51 +134,55 @@ const StudentDashboard = ({ profile, gamification }) => {
   const currentLevelProgress = gamification?.points || 0;
 
   return (
-    <div className="home-welcome-box">
-      <div className="dashboard-header">
-        <h2>🎓 Student Dashboard</h2>
-        <p className="home-logged-in-text">
-          Welcome back, <strong>{profile?.firstName}</strong>!
-        </p>
+  <div className="home-welcome-box">
+    <div className="welcome-header">
+      <div className="welcome-text">
+        <h1>
+          Welcome back, {profile?.firstName || "there"}!
+        </h1>
+        <p>Ready to continue your learning journey?</p>
       </div>
 
-      <div className="action-row">
+      <div className="quick-actions">
         <Link to="/ProfilePage">
-          <button className="dashboard-btn">My Profile</button>
+          <button className="btn btn-primary">My Profile</button>
         </Link>
+
         <Link to="/CoursePage">
-          <button className="dashboard-btn">My Courses</button>
+          <button className="btn btn-secondary">Browse Courses</button>
         </Link>
       </div>
-
-      {gamification && (
-        <div className="home-progress-box">
-          <h3>Your Progress</h3>
-          <div className="level-box">
-            <div className="level-info">
-              <span className="level-label">
-                Level <strong>{currentLevel}</strong>
-              </span>
-              <span className="points-label">
-                {currentLevelProgress} / 100 XP
-              </span>
-            </div>
-
-            <div className="progress-bar-bg">
-              <div
-                className="progress-bar-fill"
-                style={{ width: `${currentLevelProgress}%` }}
-              ></div>
-            </div>
-
-            <p className="streak-text">
-              🔥 {gamification.streak || 0} Day Streak
-            </p>
-          </div>
-        </div>
-      )}
     </div>
-  );
+
+    {gamification && (
+      <div className="home-progress-box">
+        <h3>Your Progress</h3>
+
+        <div className="level-box">
+          <div className="level-info">
+            <span className="level-label">
+              Level <strong>{currentLevel}</strong>
+            </span>
+            <span className="points-label">
+              {currentLevelProgress} / 100 XP
+            </span>
+          </div>
+
+          <div className="progress-bar-bg">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${currentLevelProgress}%` }}
+            />
+          </div>
+
+          <p className="streak-text">
+            🔥 {gamification.streak || 0} Day Streak
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+);
 };
 
 const InstructorDashboard = ({ profile }) => {
@@ -408,6 +412,48 @@ function HomePage() {
               </div>
             </div>
           </section>
+
+          <section className="landing-page-features" id="features">
+            <h2>Why Choose Our Platform?</h2>
+            
+            <div className="landing-page-features-grid">
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">🎮</div>
+                <h3>Gamified Learning Experience</h3>
+                <p>Earn points, unlock badges and climb leaderboards while learning new skills.</p>
+              </div>
+
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">🤖</div>
+                <h3>AI-Powered Insights</h3>
+                <p>Receive personalized course recommendations based on your learning style.</p>
+              </div>
+
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">📈</div>
+                <h3>Track Progress</h3>
+                <p>Monitor your learning progress with clear analytics and performance metrics.</p>
+              </div>
+
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">💪</div>
+                <h3>Stay Motivated</h3>
+                <p>Build daily learning streaks and maintain consistent progress toward your goals.</p>
+              </div>
+
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">👥</div>
+                <h3>Connect & Learn</h3>
+                <p>Engage with instructors and peers through discussions and platform messaging.</p>
+              </div>
+
+              <div className="landing-page-feature-card">
+                <div className="landing-page-feature-icon">🧑‍🏫</div>
+                <h3>Expert Instructors</h3>
+                <p>Learn from professional instructors with real-world experience.</p>
+            </div>
+          </div>
+          </section>
         </main>
       </div>
     );
@@ -417,11 +463,6 @@ function HomePage() {
     <div className="home-page">
       <main className="home-hero">
         <section className="home-hero-left">
-          <h1>Welcome to the Platform</h1>
-          <p>
-            The incentive-driven learning environment tailored to your needs.
-          </p>
-
           {loading ? (
             <p>Loading dashboard...</p>
           ) : (
@@ -451,7 +492,6 @@ function HomePage() {
       </main>
 
       {/* Daily Login Streak Modal */}
-
       {profile?.role === "student" && (
         <StudentDailyLoginStreak
           isOpen={showDailyLogin}

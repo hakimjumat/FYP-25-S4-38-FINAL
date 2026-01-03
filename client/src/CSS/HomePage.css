@@ -145,7 +145,7 @@
 }
 
 .home-hero-left {
-  width: 50%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -325,3 +325,140 @@
   color: #e17055; /* Orange for fire/streak */
   font-size: 14px;
 }
+
+.landing-page-features {
+  padding: 70px 20px;
+  text-align: center;
+  color: white;
+}
+
+.landing-page-features h2 {
+  font-size: 48px;
+  font-weight: 900;
+  margin-bottom: 40px;
+  letter-spacing: -0.5px;
+}
+
+.landing-page-features-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.landing-page-feature-card {
+  background: white;
+  color: #2d3748;
+  border-radius: 16px;
+  padding: 36px 28px;
+  min-height: 220px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.landing-page-feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 18px 55px rgba(0,0,0,0.18);
+}
+
+.landing-page-feature-icon {
+  font-size: 44px;
+  margin-bottom: 18px;
+}
+
+.landing-page-feature-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.landing-page-feature-card p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #6b7280;
+  max-width: 240px;
+}
+
+@media (max-width: 950px) {
+  .landing-page-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .landing-page-features h2 {
+    font-size: 34px;
+  }
+
+  .landing-page-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.welcome-header {
+  background: white;
+  padding: 26px 28px;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.welcome-text h1 {
+  font-size: 32px;
+  color: #2c3e50;
+  margin: 0 0 8px 0;
+  font-weight: 800;
+}
+
+.welcome-text p {
+  margin: 0;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  border: none;
+}
+
+.btn-primary,
+.btn-secondary {
+  background: rgb(0, 81, 255);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: rgb(12, 192, 12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(12, 192, 12, 0.35);
+}
+
+.btn-secondary:hover {
+  background: rgb(12, 192, 12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(12, 192, 12, 0.35);
+}
+
