@@ -8,13 +8,22 @@ const checkRole = require("../middleware/checkRole");
 router.use(verifyToken);
 router.use(checkRole(["admin"])); // Only admins can access
 
-// GET /api/admin/users - Get all users (with optional role filter)
+// [STORY 1] Create User
+router.post("/users", adminController.createUser);
+
+// [STORY 2 & 3] Get/Search Users
 router.get("/users", adminController.getAllUsers);
 
-// GET /api/admin/users/:userId - Get user by ID
+// [STORY 4] Get specific user
 router.get("/users/:userId", adminController.getUserById);
 
-// PUT /api/admin/users/:userId/role - Change user role
+// [STORY 5] Edit User Details
+router.put("/users/:userId", adminController.updateUser);
+
+// [STORY 6] Disable/Enable User
+router.put("/users/:userId/status", adminController.toggleUserStatus);
+
+// Change Role (Existing)
 router.put("/users/:userId/role", adminController.changeUserRole);
 
 // DELETE /api/admin/users/:userId - Delete user

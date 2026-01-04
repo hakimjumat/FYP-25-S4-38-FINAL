@@ -85,9 +85,7 @@ function NavBar() {
                 <button onClick={() => navigate("/ProfilePage")}>
                   Profile
                 </button>
-                <button onClick={() => navigate("/InboxPage")}>
-                  Inbox
-                </button>
+                <button onClick={() => navigate("/InboxPage")}>Inbox</button>
                 <button onClick={handleLogOut}>Logout</button>
               </div>
             )}
@@ -137,55 +135,53 @@ const StudentDashboard = ({ profile, gamification }) => {
   const currentLevelProgress = gamification?.points || 0;
 
   return (
-  <div className="home-welcome-box">
-    <div className="welcome-header">
-      <div className="welcome-text">
-        <h1>
-          Welcome back, {profile?.firstName || "there"}!
-        </h1>
-        <p>Ready to continue your learning journey?</p>
-      </div>
+    <div className="home-welcome-box">
+      <div className="welcome-header">
+        <div className="welcome-text">
+          <h1>Welcome back, {profile?.firstName || "there"}!</h1>
+          <p>Ready to continue your learning journey?</p>
+        </div>
 
-      <div className="quick-actions">
-        <Link to="/ProfilePage">
-          <button className="btn btn-primary">My Profile</button>
-        </Link>
+        <div className="quick-actions">
+          <Link to="/ProfilePage">
+            <button className="btn btn-primary">My Profile</button>
+          </Link>
 
-        <Link to="/CoursePage">
-          <button className="btn btn-secondary">Browse Courses</button>
-        </Link>
-      </div>
-    </div>
-
-    {gamification && (
-      <div className="home-progress-box">
-        <h3>Your Progress</h3>
-
-        <div className="level-box">
-          <div className="level-info">
-            <span className="level-label">
-              Level <strong>{currentLevel}</strong>
-            </span>
-            <span className="points-label">
-              {currentLevelProgress} / 100 XP
-            </span>
-          </div>
-
-          <div className="progress-bar-bg">
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${currentLevelProgress}%` }}
-            />
-          </div>
-
-          <p className="streak-text">
-            🔥 {gamification.streak || 0} Day Streak
-          </p>
+          <Link to="/CoursePage">
+            <button className="btn btn-secondary">Browse Courses</button>
+          </Link>
         </div>
       </div>
-    )}
-  </div>
-);
+
+      {gamification && (
+        <div className="home-progress-box">
+          <h3>Your Progress</h3>
+
+          <div className="level-box">
+            <div className="level-info">
+              <span className="level-label">
+                Level <strong>{currentLevel}</strong>
+              </span>
+              <span className="points-label">
+                {currentLevelProgress} / 100 XP
+              </span>
+            </div>
+
+            <div className="progress-bar-bg">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${currentLevelProgress}%` }}
+              />
+            </div>
+
+            <p className="streak-text">
+              🔥 {gamification.streak || 0} Day Streak
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const InstructorDashboard = ({ profile }) => {
@@ -215,22 +211,31 @@ const InstructorDashboard = ({ profile }) => {
   );
 };
 
-const AdminDashboard = ({ profile }) => (
-  <div className="home-welcome-box admin-theme">
-    <div className="dashboard-header">
-      <h2>🛡️ Admin Control Panel</h2>
-      <p className="home-logged-in-text">
-        Logged in as Administrator: <strong>{profile?.firstName}</strong>
-      </p>
-    </div>
+const AdminDashboard = ({ profile }) => {
+  const navigate = useNavigate(); // Add this hook
 
-    <div className="action-row">
-      <button className="dashboard-btn warning">Manage Users</button>
-      <button className="dashboard-btn">System Settings</button>
-      <button className="dashboard-btn">View Logs</button>
+  return (
+    <div className="home-welcome-box admin-theme">
+      <div className="dashboard-header">
+        <h2>🛡️ Admin Control Panel</h2>
+        <p className="home-logged-in-text">
+          Logged in as Administrator: <strong>{profile?.firstName}</strong>
+        </p>
+      </div>
+
+      <div className="action-row">
+        <button
+          className="dashboard-btn warning"
+          onClick={() => navigate("/admin/users")}
+        >
+          Manage User Accounts
+        </button>
+        <button className="dashboard-btn">System Settings</button>
+        <button className="dashboard-btn">View Logs</button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Main Page Component ---
 
@@ -418,44 +423,62 @@ function HomePage() {
 
           <section className="landing-page-features" id="features">
             <h2>Why Choose Our Platform?</h2>
-            
+
             <div className="landing-page-features-grid">
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">🎮</div>
                 <h3>Gamified Learning Experience</h3>
-                <p>Earn points, unlock badges and climb leaderboards while learning new skills.</p>
+                <p>
+                  Earn points, unlock badges and climb leaderboards while
+                  learning new skills.
+                </p>
               </div>
 
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">🤖</div>
                 <h3>AI-Powered Insights</h3>
-                <p>Receive personalized course recommendations based on your learning style.</p>
+                <p>
+                  Receive personalized course recommendations based on your
+                  learning style.
+                </p>
               </div>
 
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">📈</div>
                 <h3>Track Progress</h3>
-                <p>Monitor your learning progress with clear analytics and performance metrics.</p>
+                <p>
+                  Monitor your learning progress with clear analytics and
+                  performance metrics.
+                </p>
               </div>
 
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">💪</div>
                 <h3>Stay Motivated</h3>
-                <p>Build daily learning streaks and maintain consistent progress toward your goals.</p>
+                <p>
+                  Build daily learning streaks and maintain consistent progress
+                  toward your goals.
+                </p>
               </div>
 
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">👥</div>
                 <h3>Connect & Learn</h3>
-                <p>Engage with instructors and peers through discussions and platform messaging.</p>
+                <p>
+                  Engage with instructors and peers through discussions and
+                  platform messaging.
+                </p>
               </div>
 
               <div className="landing-page-feature-card">
                 <div className="landing-page-feature-icon">🧑‍🏫</div>
                 <h3>Expert Instructors</h3>
-                <p>Learn from professional instructors with real-world experience.</p>
+                <p>
+                  Learn from professional instructors with real-world
+                  experience.
+                </p>
+              </div>
             </div>
-          </div>
           </section>
         </main>
       </div>

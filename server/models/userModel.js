@@ -87,6 +87,19 @@ class UserModel {
     }
   }
 
+  // Toggle Disable Status
+  async toggleUserDisabledStatus(uid, isDisabled) {
+    try {
+      await this.collection.doc(uid).update({
+        isDisabled: isDisabled,
+        updatedAt: new Date(),
+      });
+      return { success: true, isDisabled };
+    } catch (error) {
+      throw new Error(`Error updating disabled status: ${error.message}`);
+    }
+  }
+
   // change user role (admin only)
   async changeUserRole(uid, newRole) {
     try {

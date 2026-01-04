@@ -21,6 +21,11 @@ import InboxPage from "./components/InboxPage";
 
 import CoursePage from "./components/Student/CoursePage";
 
+import AdminUserPage from "./components/Admin/AdminUserPage";
+
+import CreateUserPage from "./components/Admin/CreateUserPage";
+import ViewAccountPage from "./components/Admin/ViewAccountPage";
+
 function App() {
   return (
     <AuthProvider>
@@ -53,6 +58,10 @@ function App() {
                 path="/instructor/course/:courseId/assessment"
                 element={<AssessmentEditorPage />}
               />
+
+              <Route path="/admin/users" element={<AdminUserPage />} />
+              <Route path="/admin/create-user" element={<CreateUserPage />} />
+              <Route path="/admin/user/:userId" element={<ViewAccountPage />} />
             </Routes>
           </div>
           <Footer />
