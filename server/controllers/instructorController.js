@@ -258,6 +258,24 @@ class InstructorController {
     try {
       const uid = req.user.uid;
       const { courseId, contentId } = req.params;
+
+      // 1. We need to see what this content is before we delete it
+      const course = await courseModel.getCourseById(courseId);
+      if (!course) throw new Error("Course not found");
+
+      // 2. FIND THE CONTENT ITEM
+      const contentItem = course.content.find((item) => item.id === contentId);
+
+      if (contentItem) {
+        // 3. CHECK: IS IT AN ASSESSMENT?
+        if (contentItem.type === "quiz" || contentItem.type === "test") {
+          console.log(`Deleting Assessment Doc: ${contentId}`);
+          // Delete the "Heavy Data" from assessments collection
+          await assessmentModel.deleteAssessment(contentId);
+        }
+      }
+
+      // remove content reference from course
       const updatedContent = await courseModel.removeContent(
         courseId,
         contentId

@@ -34,5 +34,14 @@ class AssessmentModel {
       throw new Error(error.message);
     }
   }
+
+  async deleteAssessment(assessmentId) {
+    try {
+      await this.collection.doc(assessmentId).delete();
+      return { success: true };
+    } catch (error) {
+      throw new Error(`Error deleting assessment: ${error.message}`);
+    }
+  }
 }
 module.exports = new AssessmentModel();
