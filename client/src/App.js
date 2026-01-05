@@ -17,6 +17,7 @@ import RegisterPage from "./components/RegisterPage";
 import ProfilePage from "./components/ProfilePage";
 import CourseEditorPage from "./components/Instructor/CourseEditorPage";
 import AssessmentEditorPage from "./components/Instructor/AssessmentEditorPage";
+import InternshipPostingPage from "./components/InternshipPostingPage";
 import InboxPage from "./components/InboxPage";
 
 import CoursePage from "./components/Student/CoursePage";
@@ -52,6 +53,8 @@ function App() {
               <Route path="/InboxPage" element={<InboxPage />} />
 
               <Route path="/CoursePage" element={<CoursePage />} />
+
+              <Route path="/InternshipPostingPage" element={<InternshipPostingPage />} />
 
               <Route path="*" element={<Navigate to="/" />} />
               <Route
