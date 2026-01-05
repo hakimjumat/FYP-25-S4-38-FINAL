@@ -2,15 +2,17 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
 import "../../CSS/CourseEditorPage.css"; // Reusing grid styles
+import "../../CSS/CoursePage.css";
 
 function CoursePage() {
-  const { user } = useContext(AuthContext);
-  const [courses, setCourses] = useState([]);
+  const { user } = useContext(AuthContext); // get logged in use information
+  const [courses, setCourses] = useState([]); // stores all courses
   const [loading, setLoading] = useState(true);
 
   // Modal State
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // controls popup visibility
+  const [activeTab, setActiveTab] = useState("materials");  // which tab is active in popup
 
   // Fetch all courses
   const fetchCourses = async () => {
@@ -45,7 +47,9 @@ function CoursePage() {
   });
 
   const openCourseDetails = (course) => {
+    const enrolled = course.enrolledStudents?.includes(user.uid); // check if enrolled
     setSelectedCourse(course);
+    setActiveTab(enrolled ? "materials" : "reviews"); // enrolled -> start at materials, not enrolled -> start at reviews
     setIsModalOpen(true);
   };
 
@@ -82,7 +86,7 @@ function CoursePage() {
   if (!user) return <div>Please log in to view courses.</div>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="course-page">
       <h1>Available Courses</h1>
       <p>Explore and enroll in courses to boost your skills.</p>
 
@@ -131,61 +135,86 @@ function CoursePage() {
         })}
       </div>
 
-      {/* COURSE DETAILS MODAL */}
-      {isModalOpen && selectedCourse && (
-        <div className="modal-overlay">
-          <div className="modal-box" style={{ maxWidth: "600px" }}>
-            <h2>{selectedCourse.title}</h2>
-            <p>
-              <strong>Instructor:</strong> {selectedCourse.instructorName}
-            </p>
-            <p style={{ margin: "15px 0", lineHeight: "1.6" }}>
-              {selectedCourse.description}
-            </p>
+{isModalOpen && selectedCourse && ( // COURSE DETAILS MODAL
+  <div className="modal-overlay">
+    <div className="course-modal-box">
 
-            <hr />
+      {/*HEADER (Course Info)*/}
+      <div className="course-modal-header"> 
+        <div className="course-title-row">
+          <h2>{selectedCourse.title}</h2>
 
+          {selectedCourse.enrolledStudents?.includes(user.uid) && ( 
+            <span className="enrolled-badge">✓ ENROLLED</span>
+          )}
+        </div>
+
+        <div className="course-instructor">
+          <strong>🧑‍🏫Instructor:</strong> {selectedCourse.instructorName}
+        </div>
+
+        <div className="course-desc">
+          {selectedCourse.description}
+        </div>
+      </div>
+
+      {/*TABS (Switch Between views)*/}
+      <div className="tab-navigation">
+        <button
+          className={`tab-btn ${activeTab === "materials" ? "active" : ""}`}
+          onClick={() => setActiveTab("materials")}
+        >
+          📚Course Materials
+        </button>
+
+        <button
+          className={`tab-btn ${activeTab === "assessments" ? "active" : ""}`}
+          onClick={() => setActiveTab("assessments")}
+        >
+          📖Assessments
+        </button>
+
+        <button
+          className={`tab-btn ${activeTab === "reviews" ? "active" : ""}`}
+          onClick={() => setActiveTab("reviews")}
+        >
+          ⭐Reviews
+        </button>
+      </div>
+
+      {/*CONTENT*/}
+      <div className="course-modal-content">
+
+        {activeTab === "reviews" && ( // REVIEWS TAB
+          <>
             <h3>Reviews</h3>
-            <div
-              style={{
-                maxHeight: "150px",
-                overflowY: "auto",
-                marginBottom: "20px",
-              }}
-            >
+
+            <div className="reviews-scroll">
               {selectedCourse.reviews && selectedCourse.reviews.length > 0 ? (
                 selectedCourse.reviews.map((rev, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: "#f9f9f9",
-                      padding: "10px",
-                      marginBottom: "10px",
-                      borderRadius: "5px",
-                    }}
-                  >
-                    <strong>{rev.rating} ⭐</strong> - {rev.comment}
-                    <div style={{ fontSize: "12px", color: "#888" }}>
+                  <div key={idx} className="review-card">
+                    <strong>{rev.rating} ⭐</strong> – {rev.comment}
+
+                    <div style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>
                       {new Date(rev.date).toLocaleDateString()}
                     </div>
                   </div>
                 ))
               ) : (
-                <p style={{ fontStyle: "italic", color: "#888" }}>
-                  No reviews yet.
-                </p>
+                <p className="locked-text">No reviews yet.</p>
               )}
             </div>
-              
-            {selectedCourse.enrolledStudents?.includes(user.uid) && (  // selectedCourse.enrolledStudents = array of studentID, user.uid = current logged in student, .includes(user.uid) = check whether student is enrolled 
-              <> 
-              <hr/>
-              
-              <h3>Course Materials</h3>
-              
-              {selectedCourse.content && selectedCourse.content.length > 0 ? (  // prevent from crashing when there is no file inside
+          </>
+        )}
+
+        {activeTab === "materials" && ( // MATERIALS TAB
+          <>
+            <h3>Course Materials</h3>
+
+            {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+              selectedCourse.content && selectedCourse.content.length > 0 ? (
                 <div className="file-list student-file-list">
-                  {selectedCourse.content.map((file) => (   // uploaded files become visible
+                  {selectedCourse.content.map((file) => (
                     <div key={file.id} className="file-item">
                       <a href={file.fileUrl} target="_blank" rel="noreferrer">
                         {file.title}
@@ -193,42 +222,57 @@ function CoursePage() {
                     </div>
                   ))}
                 </div>
-              ):(
-                <p className="empty-text">No materials uploaded.</p>
-              )}
-              </>
-            )}
-
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "flex-end",
-              }}
-            >
-              {selectedCourse.enrolledStudents?.includes(user.uid) ? (
-                <button
-                  className="modal-btn"
-                  disabled
-                  style={{ background: "#4cd137", cursor: "default" }}
-                >
-                  Already Enrolled
-                </button>
               ) : (
-                <button className="modal-btn" onClick={handleEnroll}>
-                  Enroll Now
-                </button>
-              )}
-              <button
-                className="text-btn"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                <p className="locked-text">No materials uploaded yet.</p>
+              )
+            ) : (
+              <p className="locked-text">
+                Enroll to unlock course materials.
+              </p>
+            )}
+          </>
+        )}
+
+        {activeTab === "assessments" && ( // ASSESSMENTS TAB(only for enrolled students)
+          <>
+            <h3>Assessments</h3>
+
+            {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+              <p className="locked-text">No assessments yet.</p>
+            ) : (
+              <p className="locked-text">
+                Enroll to unlock assessments.
+              </p>
+            )}
+          </>
+        )}
+
+      </div>
+
+      {/*FOOTER (Actions like Enroll / Close)*/}
+      <div className="course-modal-footer">
+        {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+          <button
+            className="modal-btn"
+            disabled
+            style={{ background: "#4cd137", cursor: "default" }}
+          >
+            Already Enrolled
+          </button>
+        ) : (
+          <button className="modal-btn" onClick={handleEnroll}>
+            Enroll Now
+          </button>
+        )}
+
+        <button className="text-btn" onClick={() => setIsModalOpen(false)}>
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
