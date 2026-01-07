@@ -8,6 +8,7 @@ function CoursePage() {
   const { user } = useContext(AuthContext); // get logged in use information
   const [courses, setCourses] = useState([]); // stores all courses
   const [loading, setLoading] = useState(true);
+  const [assesments, setAssesment] = useState([]);
 
   // Modal State
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -52,6 +53,28 @@ function CoursePage() {
     setActiveTab(enrolled ? "materials" : "reviews"); // enrolled -> start at materials, not enrolled -> start at reviews
     setIsModalOpen(true);
   };
+
+  const loadCourseAssessment = async (assID) => {
+    /*try{
+      const courseAssessments = await authFetch(
+        "http://localhost:5000/api/students/getcourseassessment",
+        {
+          method: "GET",
+          body: JSON.stringify({AssessmentId: selectedCourse.id}),
+        },
+        user
+      );
+
+      if(courseAssessments.success){
+
+      }
+    }
+    catch(error){
+      console.error(error);
+      alert("Failed to get assessments.");
+    }*/
+    
+  }
 
   const handleEnroll = async () => {
     if (
@@ -216,9 +239,17 @@ function CoursePage() {
                 <div className="file-list student-file-list">
                   {selectedCourse.content.map((file) => (
                     <div key={file.id} className="file-item">
-                      <a href={file.fileUrl} target="_blank" rel="noreferrer">
+                      {file.type === "quiz" ?
+                      <div>
+                        <p>{file.title}</p>
+                        <button /*onClick={loadCourseAssessment(file.id)}*/>Take Assessment</button>
+                      </div> 
+                      :
+                        <a href={file.fileUrl} target="_blank" rel="noreferrer">
                         {file.title}
-                      </a>
+                        </a>
+                      }
+                      
                     </div>
                   ))}
                 </div>

@@ -57,6 +57,19 @@ class StudentController {
     }
   }
 
+  async getAssessment(req, res, next) {
+    try {
+      //need to change to a function to get data from assessment table
+      const assessment = await courseModel.getAllCourses();
+      res.status(200).json({
+        success: true,
+        data: assessment,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async enrollCourse(req, res, next) {
     try {
       const uid = req.user.uid;
