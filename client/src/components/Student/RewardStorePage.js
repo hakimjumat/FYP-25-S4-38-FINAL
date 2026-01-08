@@ -65,6 +65,8 @@ function RewardStorePage() {
         loadData();
       }, [user]);
 
+      if (loading) return <div>Loading...</div>;
+
     return(
         <div className="course-page">
             <h1>Rewards Store</h1>
