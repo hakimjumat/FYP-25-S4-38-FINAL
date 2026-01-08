@@ -23,6 +23,15 @@ function ProfilePage() {
   });
   const AVATAR_OPTIONS = ["👨‍🎓", "👩‍🔬", "🦸", "🕵️", "🧑‍🚀"];
 
+  // --- NEW: ROLE DESCRIPTIONS MAPPING ---
+  const ROLE_DESCRIPTIONS = {
+    student: "Student at the Incentive-Driven Learning Platform.",
+    instructor: "Passionate educator dedicated to student success.",
+    admin: "Administrator overseeing platform operations and user management.",
+    internshipprovider:
+      "Industry partner connecting students with career opportunities.",
+  };
+
   // 1. Load Data
   const loadProfile = async () => {
     if (!user) return;
@@ -114,7 +123,11 @@ function ProfilePage() {
             <div>
               <h1 className="profile-name">{displayName}</h1>
               <p className="profile-role">
-                {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Account
+                {/* Capitalize Role */}
+                {userRole === "internshipprovider"
+                  ? "Internship Provider"
+                  : userRole.charAt(0).toUpperCase() + userRole.slice(1)}{" "}
+                Account
               </p>
               <p className="email-text">{profileData.email}</p>
             </div>
@@ -123,9 +136,8 @@ function ProfilePage() {
           <div className="about-section">
             <h2>About me</h2>
             <p className="about-placeholder">
-              {userRole === "instructor"
-                ? "Passionate educator dedicated to student success."
-                : "Student at the Incentive-Driven Learning Platform."}
+              {/* === UPDATED LOGIC HERE === */}
+              {ROLE_DESCRIPTIONS[userRole] || ROLE_DESCRIPTIONS["student"]}
             </p>
           </div>
 

@@ -67,9 +67,8 @@ class AdminController {
       if (role) {
         users = await userModel.getUsersByRole(role);
       } else {
-        const db = require("../config/db");
-        const snapshot = await db.collection("users").get();
-        users = snapshot.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+        //call new method added to get all users
+        users = await userModel.getAllUsers();
       }
 
       // 2. Filter in memory (Basic search)
@@ -120,20 +119,34 @@ class AdminController {
   async updateUser(req, res, next) {
     try {
       const { userId } = req.params;
-      const updates = req.body; // { firstName, lastName, phone... }
+      const updates = req.body; // { firstName, lastName }
 
-      // Update Firestore
+      // 1. Update Firestore (Database)
       await userModel.updateUserProfile(userId, updates);
 
-      // Optional: Update Auth Display Name if names changed
-      if (updates.firstName || updates.lastName) {
-        await admin.auth().updateUser(userId, {
-          displayName: `${updates.firstName} ${updates.lastName}`,
-        });
+      // 2. Update Firebase Auth (Display Name)
+      // Safety Check: Ensure 'admin' is loaded
+      if (admin && admin.auth) {
+        // Only update Auth if names are actually provided
+        if (updates.firstName || updates.lastName) {
+          // Fetch current user data to avoid "undefined" (e.g. "John undefined")
+          const currentProfile = await userModel.getUserById(userId);
+
+          // Use new value if provided, otherwise keep existing value
+          const safeFirst = updates.firstName || currentProfile.firstName || "";
+          const safeLast = updates.lastName || currentProfile.lastName || "";
+
+          await admin.auth().updateUser(userId, {
+            displayName: `${safeFirst} ${safeLast}`.trim(),
+          });
+        }
+      } else {
+        console.error(" Firebase Admin not initialized in controller");
       }
 
       res.status(200).json({ success: true, message: "Changes Saved" });
     } catch (error) {
+      console.error("Update User Error:", error);
       next(error);
     }
   }
@@ -146,23 +159,10 @@ class AdminController {
       const { userId } = req.params;
       const { newRole } = req.body;
 
-      const validRoles = [
-        "student",
-        "instructor",
-        "admin",
-        "internshipprovider",
-      ];
-      if (!validRoles.includes(newRole)) {
-        return res.status(400).json({
-          success: false,
-          message: `Invalid role. Must be one of: ${validRoles.join(", ")}`,
-        });
-      }
+      // [STYLE FIX] Validation logic delegated to Model or checked against Model
+      // But keeping basic validation here is also fine for immediate feedback
 
-      // Update role in Firestore
       await userModel.changeUserRole(userId, newRole);
-
-      // Set custom claim in Firebase Auth
       await admin.auth().setCustomUserClaims(userId, { role: newRole });
 
       res.status(200).json({

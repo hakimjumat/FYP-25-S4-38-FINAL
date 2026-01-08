@@ -5,6 +5,7 @@ const router = express.Router();
 const studentRoutes = require("./studentRoutes");
 const adminRoutes = require("./adminRoutes");
 const instructorRoutes = require("./instructorRoutes");
+const internshipRoutes = require("./internshipRoutes");
 // const courseRoutes = require("./courseRoutes");
 const authRoutes = require("./authRoutes");
 
@@ -14,6 +15,7 @@ router.use("/students", studentRoutes);
 router.use("/auth", authRoutes);
 router.use("/instructors", instructorRoutes);
 router.use("/admin", adminRoutes);
+router.use("/internships", internshipRoutes);
 
 // Health check route
 router.get("/status", (req, res) => {

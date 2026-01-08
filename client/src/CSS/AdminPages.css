@@ -1,0 +1,251 @@
+/* client/src/CSS/AdminPages.css */
+
+.admin-page {
+  padding: 40px 20px;
+  background-color: #f8f9fa; /* Light grey background for the whole page */
+  min-height: 100vh;
+}
+
+/* --- MAIN CARD CONTAINER (Like Course Modal) --- */
+.admin-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Soft, modern shadow */
+  overflow: hidden; /* Keeps content inside rounded corners */
+  animation: slideUp 0.3s ease-out;
+}
+
+/* --- HEADER SECTION --- */
+.admin-header {
+  padding: 24px 30px;
+  border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+/* --- BUTTONS (Matches Instructor/Student) --- */
+.admin-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-black {
+  background-color: #2c3e50;
+  color: white;
+}
+
+.btn-green {
+  background-color: #4cd137; /* Matches Student 'Enroll' green */
+  color: white;
+}
+
+.btn-red {
+  background-color: #ff4757;
+  color: white;
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid #dfe6e9;
+  color: #636e72;
+}
+.btn-outline:hover {
+  border-color: #b2bec3;
+  background-color: #f1f2f6;
+  transform: none;
+  box-shadow: none;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #636e72;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+.back-btn:hover {
+  color: #2d3436;
+}
+
+/* --- SEARCH BAR --- */
+.search-box {
+  background: #f1f2f6;
+  padding: 8px 16px;
+  border-radius: 30px; /* Pill shape */
+  display: flex;
+  align-items: center;
+  width: 300px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.search-box:focus-within {
+  background: white;
+  border-color: #4cd137;
+  box-shadow: 0 0 0 3px rgba(76, 209, 55, 0.1);
+}
+
+.search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  padding: 5px;
+  font-size: 14px;
+  color: #2d3436;
+}
+
+/* --- TABLE (Clean & Modern) --- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 18px 30px;
+  background-color: #f8f9fa;
+  color: #636e72;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  border-bottom: 2px solid #eee;
+}
+
+.admin-table td {
+  padding: 16px 30px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #2d3436;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+.admin-table tr:hover {
+  background-color: #fafafa;
+}
+
+/* --- STATUS BADGES --- */
+.badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-active {
+  background-color: #e3fcef;
+  color: #00b894;
+}
+.badge-disabled {
+  background-color: #ffeaa7;
+  color: #d63031;
+}
+.badge-role {
+  background-color: #dfe6e9;
+  color: #2d3436;
+}
+
+/* --- FORMS (View/Create Page) --- */
+.admin-content {
+  padding: 30px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2d3436;
+  font-size: 14px;
+}
+
+.admin-input,
+.admin-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #2d3436;
+  transition: border 0.2s, box-shadow 0.2s;
+  background-color: white;
+}
+
+.admin-input:focus,
+.admin-select:focus {
+  outline: none;
+  border-color: #2c3e50;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+.admin-input:disabled {
+  background-color: #f1f2f6;
+  color: #636e72;
+  cursor: not-allowed;
+}
+
+/* Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

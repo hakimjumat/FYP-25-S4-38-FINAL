@@ -1,25 +1,20 @@
+// client/src/components/Admin/ViewAccountPage.js
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
+import "../../CSS/AdminPages.css";
 
 function ViewAccountPage() {
   const { userId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [profile, setProfile] = useState({
-    email: "",
-    firstName: "",
-    lastName: "",
-    role: "",
-    isDisabled: false,
-  });
-  const [originalRole, setOriginalRole] = useState(""); // To track if role changed
+  const [profile, setProfile] = useState(null);
+  const [originalRole, setOriginalRole] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // 1. Fetch User Data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -29,9 +24,8 @@ function ViewAccountPage() {
           user
         );
         setProfile(res.data);
-        setOriginalRole(res.data.role); // Save original role
+        setOriginalRole(res.data.role);
       } catch (err) {
-        alert("Failed to load user");
         navigate("/admin/users");
       } finally {
         setLoading(false);
@@ -40,10 +34,8 @@ function ViewAccountPage() {
     loadData();
   }, [userId, user, navigate]);
 
-  // 2. Handle Save (Dual Update: Details + Role)
   const handleSave = async () => {
     try {
-      // A. Update Profile Details (First Name, Last Name)
       await authFetch(
         `http://localhost:5000/api/admin/users/${userId}`,
         {
@@ -56,8 +48,6 @@ function ViewAccountPage() {
         user
       );
 
-      // B. Update Role (Only if it changed)
-      // We do this separately because your backend has a dedicated route for roles
       if (profile.role !== originalRole) {
         await authFetch(
           `http://localhost:5000/api/admin/users/${userId}/role`,
@@ -69,24 +59,15 @@ function ViewAccountPage() {
         );
         setOriginalRole(profile.role);
       }
-
       alert("Changes Saved Successfully");
       setIsEditing(false);
     } catch (err) {
-      console.error(err);
-      alert("Error saving changes. Check console for details.");
+      alert("Error saving changes");
     }
   };
 
-  // 3. Handle Disable
   const handleDisable = async () => {
-    if (
-      window.confirm(
-        `Are you sure you want to ${
-          profile.isDisabled ? "ENABLE" : "DISABLE"
-        } this account?`
-      )
-    ) {
+    if (window.confirm(`Are you sure?`)) {
       try {
         await authFetch(
           `http://localhost:5000/api/admin/users/${userId}/status`,
@@ -96,96 +77,143 @@ function ViewAccountPage() {
           },
           user
         );
-
         setProfile({ ...profile, isDisabled: !profile.isDisabled });
-        alert(profile.isDisabled ? "Account Enabled" : "Account Disabled");
       } catch (err) {
         alert("Action failed");
       }
     }
   };
 
-  if (loading) return <div>Loading Profile...</div>;
+  if (loading || !profile) return <div className="admin-page">Loading...</div>;
 
   return (
-    <div className="form-container">
-      <button onClick={() => navigate("/admin/users")} className="back-btn">
-        ← Back to Users
-      </button>
-      <h2>User Details</h2>
-
-      {/* Email (Read Only) */}
-      <div className="form-group">
-        <label>Email:</label>
-        <input value={profile.email} disabled className="disabled-input" />
-      </div>
-
-      {/* First Name */}
-      <div className="form-group">
-        <label>First Name:</label>
-        <input
-          value={profile.firstName || ""}
-          disabled={!isEditing}
-          onChange={(e) =>
-            setProfile({ ...profile, firstName: e.target.value })
-          }
-        />
-      </div>
-
-      {/* Last Name (New) */}
-      <div className="form-group">
-        <label>Last Name:</label>
-        <input
-          value={profile.lastName || ""}
-          disabled={!isEditing}
-          onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
-        />
-      </div>
-
-      {/* Role Dropdown (New) */}
-      <div className="form-group">
-        <label>Role:</label>
-        <select
-          value={profile.role}
-          disabled={!isEditing}
-          onChange={(e) => setProfile({ ...profile, role: e.target.value })}
-        >
-          <option value="student">Student</option>
-          <option value="instructor">Instructor</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="button-group" style={{ marginTop: "20px" }}>
-        {!isEditing ? (
-          <button onClick={() => setIsEditing(true)}>Edit Details</button>
-        ) : (
-          <>
-            <button onClick={handleSave} style={{ backgroundColor: "#27ae60" }}>
-              Save Changes
-            </button>
+    <div className="admin-page">
+      <div className="admin-container" style={{ maxWidth: "800px" }}>
+        <div className="admin-header">
+          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
             <button
-              onClick={() => setIsEditing(false)}
-              style={{ backgroundColor: "#7f8c8d", marginLeft: "10px" }}
+              className="back-btn"
+              style={{ fontSize: "18px", margin: 0 }}
+              onClick={() => navigate("/admin/users")}
             >
-              Cancel
+              ←
             </button>
-          </>
-        )}
+            <h2>
+              {profile.firstName} {profile.lastName}
+            </h2>
+            <span
+              className={`badge ${
+                profile.isDisabled ? "badge-disabled" : "badge-active"
+              }`}
+            >
+              {profile.isDisabled ? "DISABLED" : "ACTIVE"}
+            </span>
+          </div>
+          <div>
+            {!isEditing ? (
+              <button
+                className="admin-btn btn-black"
+                onClick={() => setIsEditing(true)}
+              >
+                Edit Profile
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  className="admin-btn btn-outline"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </button>
+                <button className="admin-btn btn-green" onClick={handleSave}>
+                  Save Changes
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-        <button
-          onClick={handleDisable}
-          style={{
-            backgroundColor: profile.isDisabled ? "#27ae60" : "#c0392b",
-            float: "right",
-          }}
-        >
-          {profile.isDisabled ? "ENABLE ACCOUNT" : "DISABLE ACCOUNT"}
-        </button>
+        <div className="admin-content">
+          <div className="form-group">
+            <label>Email Address (Read-Only)</label>
+            <input className="admin-input" value={profile.email} disabled />
+          </div>
+
+          <div className="form-grid">
+            <div className="form-group">
+              <label>First Name</label>
+              <input
+                className="admin-input"
+                value={profile.firstName || ""}
+                disabled={!isEditing}
+                onChange={(e) =>
+                  setProfile({ ...profile, firstName: e.target.value })
+                }
+              />
+            </div>
+            <div className="form-group">
+              <label>Last Name</label>
+              <input
+                className="admin-input"
+                value={profile.lastName || ""}
+                disabled={!isEditing}
+                onChange={(e) =>
+                  setProfile({ ...profile, lastName: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Role</label>
+            <select
+              className="admin-select"
+              value={profile.role}
+              disabled={!isEditing}
+              onChange={(e) => setProfile({ ...profile, role: e.target.value })}
+            >
+              <option value="student">Student</option>
+              <option value="instructor">Instructor</option>
+              <option value="admin">Admin</option>
+              <option value="internshipprovider">Internship Provider</option>
+            </select>
+          </div>
+
+          <hr
+            style={{
+              border: "none",
+              borderTop: "1px solid #eee",
+              margin: "30px 0",
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <strong style={{ color: "#d63031", display: "block" }}>
+                Danger Zone
+              </strong>
+              <small style={{ color: "#636e72" }}>
+                Disable access for this user immediately.
+              </small>
+            </div>
+            <button
+              className={`admin-btn ${
+                profile.isDisabled ? "btn-green" : "btn-red"
+              }`}
+              onClick={handleDisable}
+            >
+              {profile.isDisabled ? "Enable Account" : "Disable Account"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
 export default ViewAccountPage;

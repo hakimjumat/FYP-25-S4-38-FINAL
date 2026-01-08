@@ -9,14 +9,17 @@ class UserModel {
     this.collection = db.collection("users");
   }
 
+  getValidRoles() {
+    return ["student", "instructor", "admin", "internshipprovider"];
+  }
+
   // create a new user profile in Firestore
   async createUser(uid, userData) {
     try {
       const { role = "student", ...otherData } = userData; // default role is student
 
       // validate role
-      const validRoles = ["student", "instructor", "admin"];
-      if (!validRoles.includes(role)) {
+      if (!this.getValidRoles().includes(role)) {
         throw new Error(`Invalid role specified: ${role}`);
       }
 
@@ -24,12 +27,23 @@ class UserModel {
         ...otherData,
         role,
         accountType: role, // for backward compatibility
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
       return { success: true, uid, role };
     } catch (error) {
       throw new Error("Error creating user: " + error.message);
+    }
+  }
+
+  // NEW Method that matches style of getCoursesByInstructor
+
+  async getAllUsers() {
+    try {
+      const snapshot = await this.collection.get();
+      return snapshot.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+    } catch (error) {
+      throw new Error("Error fetching all users: " + error.message);
     }
   }
 
@@ -79,7 +93,7 @@ class UserModel {
       const { role, ...safeUpdates } = updates;
       await this.collection.doc(uid).update({
         ...safeUpdates,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       });
       return { succes: true };
     } catch (error) {
@@ -92,7 +106,7 @@ class UserModel {
     try {
       await this.collection.doc(uid).update({
         isDisabled: isDisabled,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       });
       return { success: true, isDisabled };
     } catch (error) {
@@ -103,14 +117,13 @@ class UserModel {
   // change user role (admin only)
   async changeUserRole(uid, newRole) {
     try {
-      const validRoles = ["student", "instructor", "admin"];
-      if (!validRoles.includes(newRole)) {
+      if (!this.getValidRoles().includes(newRole)) {
         throw new Error(`Invalid role specified: ${newRole}`);
       }
       await this.collection.doc(uid).update({
         role: newRole,
         accountType: newRole,
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       });
       return { success: true, newRole };
     } catch (error) {

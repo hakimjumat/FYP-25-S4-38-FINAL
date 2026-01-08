@@ -54,9 +54,12 @@ function App() {
 
               <Route path="/CoursePage" element={<CoursePage />} />
 
-              <Route path="/InternshipPostingPage" element={<InternshipPostingPage />} />
+              <Route
+                path="/InternshipPostingPage"
+                element={<InternshipPostingPage />}
+              />
 
-              <Route path="/RewardStorePage" element={<RewardsPage/>}/>
+              <Route path="/RewardStorePage" element={<RewardsPage />} />
 
               <Route path="*" element={<Navigate to="/" />} />
               <Route
@@ -67,6 +70,10 @@ function App() {
               <Route path="/admin/users" element={<AdminUserPage />} />
               <Route path="/admin/create-user" element={<CreateUserPage />} />
               <Route path="/admin/user/:userId" element={<ViewAccountPage />} />
+              <Route
+                path="/InternshipPostingPage"
+                element={<InternshipPostingPage />}
+              />
             </Routes>
           </div>
           <Footer />

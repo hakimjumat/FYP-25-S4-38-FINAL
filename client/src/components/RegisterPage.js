@@ -187,7 +187,6 @@ function RegisterPage() {
           >
             <option value="student">Student</option>
             <option value="instructor">Instructor</option>
-            <option value="admin">Administrator</option>
           </select>
 
           <label className="password">Password *</label>
