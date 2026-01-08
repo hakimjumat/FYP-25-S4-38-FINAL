@@ -6,21 +6,72 @@ import "../../CSS/CourseEditorPage.css"; // Reusing grid styles
 import "../../CSS/CoursePage.css";
 
 function RewardStorePage() {
-
+    const { user } = useContext(AuthContext); // get logged in use information
+    const [profile, setProfile] = useState(null);
+    const [gamification, setGamification] = useState(null);
     const [rewardID, setRewardID] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false); // controls popup visibility
+    const [loading, setLoading] = useState(true);
 
     const openRewardDetails = (rewardtag) => {
         setRewardID(rewardtag);
         setIsModalOpen(true);
-
     }
+
+    useEffect(() => {
+        if (!user) return;
+    
+        const loadData = async () => {
+          try {
+            // 1. Fetch User Identity & Role first
+            // Note: Your authController.getCurrentUser returns data directly in result.data
+            const identityRes = await authFetch(
+              "http://localhost:5000/api/auth/current-user",
+              { method: "GET" },
+              user
+            );
+    
+            if (identityRes.success) {
+              const userProfile = identityRes.data;
+              setProfile(userProfile);
+    
+              // 2. If Student, execute login logic to record daily login
+    
+              if (userProfile.role === "student") {
+    
+                // 3.fetch full Gamification Data
+                // We use the student specific route for this
+                const studentRes = await authFetch(
+                  "http://localhost:5000/api/students/profile",
+                  { method: "GET" },
+                  user
+                );
+    
+                if (studentRes.success) {
+                  // api/students/profile returns nested data: { profile, gamification }
+                  const backendGamification = studentRes.data.gamification;
+    
+                  setGamification(backendGamification);
+                }
+              }
+            }
+          } catch (error) {
+            console.error("Home page load error:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
+    
+        loadData();
+      }, [user]);
 
     return(
         <div className="course-page">
             <h1>Rewards Store</h1>
             <p>Redeem your points for prizes</p>
-
+            <p>
+                Your Balance: {gamification.points}
+            </p>
             <div className="courses-grid">
                 <div
                     className="course-card"
