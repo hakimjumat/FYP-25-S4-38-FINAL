@@ -9,6 +9,7 @@ import { auth } from "../firebase";
 import StudentDailyLoginStreak from "./Student/StudentDailyLoginStreak";
 
 import { Link, useNavigate } from "react-router-dom";
+import BADGE_LIBRARY from "../services/badgeConfig";
 
 function NavBar() {
   const { user } = useContext(AuthContext);
@@ -132,62 +133,154 @@ function Footer() {
 const StudentDashboard = ({ profile, gamification }) => {
   // Logic copied from ProfilePage.js to calculate level
   const currentLevel = gamification?.level || 1;
-  const currentLevelProgress = gamification?.points || 0;
+  const currentPoints = gamification?.points || 0;
+  const currentStreak = gamification?.streak || 0;
+  const badgesCount = gamification?.badges?.length || 0;
 
   return (
-    <div className="home-welcome-box">
+    <div className="student-dashboard">
       <div className="welcome-header">
-        <div className="welcome-text">
-          <h1>Welcome back, {profile?.firstName || "there"}!</h1>
-          <p>Ready to continue your learning journey?</p>
+        <div className="welcome-greeting">
+          <div className="welcome-avatar">
+            {profile?.avatar || "👨‍🎓"}
+          </div>
+          <div className="welcome-text">
+            <h1>Welcome back, {profile?.firstName || "there"}!</h1>
+            <p>Ready to continue your learning journey?</p>
+          </div>
         </div>
-
         <div className="quick-actions">
           <Link to="/ProfilePage">
             <button className="btn btn-primary">My Profile</button>
           </Link>
-
           <Link to="/CoursePage">
             <button className="btn btn-secondary">Browse Courses</button>
           </Link>
-
-          <Link to="/InternshipListPage">
-            <button className="btn btn-secondary">Available Internships</button>
-          </Link>
-
           <Link to="/RewardStorePage">
-            <button className="btn btn-primary">Rewards Page</button>
+            <button className="btn btn-primary">Rewards Store</button>
           </Link>
         </div>
       </div>
 
-      {gamification && (
-        <div className="home-progress-box">
-          <h3>Your Progress</h3>
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon icon-purple">⭐</div>
+          <h3>{currentLevel}</h3>
+          <p>Current Level</p>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon icon-green">💎</div>
+          <h3>{currentPoints}</h3>
+          <p>Total Points</p>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon icon-orange">🔥</div>
+          <h3>{currentStreak}</h3>
+          <p>Day Streak</p>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon icon-blue">🏅</div>
+          <h3>{badgesCount}</h3>
+          <p>Badges Earned</p>
+        </div>
+      </div>
 
-          <div className="level-box">
-            <div className="level-info">
-              <span className="level-label">
-                Level <strong>{currentLevel}</strong>
-              </span>
-              <span className="points-label">
-                {currentLevelProgress} / 100 XP
-              </span>
-            </div>
-
-            <div className="progress-bar-bg">
-              <div
-                className="progress-bar-fill"
-                style={{ width: `${currentLevelProgress}%` }}
+      <div className="progress-card">
+        <div className="progress-card-header">📈 Your Progress</div>
+        <div className="progress-main">
+          <div className="level-circle">
+            <span className="label">Level</span>
+            <span className="number">{currentLevel}</span>
+          </div>
+          <div className="progress-details">
+            <h3>Great Progress! Keep it up! 🚀</h3>
+            
+            <div className="xp-bar-container">
+              <div 
+                className="xp-bar-fill" 
+                style={{ width: `${currentPoints}%` }}
               />
             </div>
 
-            <p className="streak-text">
-              🔥 {gamification.streak || 0} Day Streak
-            </p>
+            <div className="xp-text">
+              <span>{currentPoints} / 100 XP</span>
+              <span>Level {currentLevel + 1}</span>
+            </div>
           </div>
         </div>
-      )}
+        <div className="streak-badge">
+          <span>🔥</span>
+          <span>{currentStreak} Day Streak - {currentStreak >= 7 ? "You're on fire!" : "Keep going!"}</span>
+        </div>
+      </div>
+
+      <div className="dashboard-grid">
+        <div className="dashboard-card">
+          <div className="card-header">🏅 Your Badges</div>
+          {gamification?.badges && gamification.badges.length > 0 ? (
+            <div className="badges-grid">
+              {gamification.badges.map((badgeName, index) => {
+                const badgeInfo = BADGE_LIBRARY[badgeName] || {
+                  icon: "❓",
+                  description: "Unknown badge",
+                  color: "#f0f0f0",
+                };
+                return (
+                  <div key={index} className="badge-item">
+                    <div
+                      className="badge-icon-wrapper"
+                      style={{ backgroundColor: badgeInfo.color }}
+                    >
+                      {badgeInfo.icon}
+                    </div>
+                    <h4>{badgeName}</h4>
+                    <p>{badgeInfo.description.substring(0, 25)}...</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="no-badges">
+              <div className="no-badges-icon">🏅</div>
+              <p>No badges yet. Keep learning to earn your first badge!</p>
+            </div>
+          )}
+        </div>
+
+        <div className="dashboard-card">
+          <div className="card-header">Quick Actions</div>
+          <div className="quick-actions-grid">
+            <Link to="/CoursePage" className="quick-action-btn">
+              <div className="quick-action-icon icon-purple">📚</div>
+              <div className="quick-action-text">
+                <h4>My Courses</h4>
+                <p>Continue learning</p>
+              </div>
+            </Link>
+            <Link to="/InboxPage" className="quick-action-btn">
+              <div className="quick-action-icon icon-green">📬</div>
+              <div className="quick-action-text">
+                <h4>Inbox</h4>
+                <p>View messages</p>
+              </div>
+            </Link>
+            <Link to="/InternshipListPage" className="quick-action-btn">
+              <div className="quick-action-icon icon-orange">💼</div>
+              <div className="quick-action-text">
+                <h4>Internships</h4>
+                <p>View opportunities</p>
+              </div>
+            </Link>
+            <Link to="/RewardStorePage" className="quick-action-btn">
+              <div className="quick-action-icon icon-blue">🎁</div>
+              <div className="quick-action-text">
+                <h4>Rewards</h4>
+                <p>Redeem points</p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -205,7 +298,6 @@ const InstructorDashboard = ({ profile }) => {
       </div>
 
       <div className="action-row">
-        {/* Update this button */}
         <button
           className="dashboard-btn primary"
           onClick={() => navigate("/CourseEditorPage")}
@@ -220,7 +312,7 @@ const InstructorDashboard = ({ profile }) => {
 };
 
 const AdminDashboard = ({ profile }) => {
-  const navigate = useNavigate(); // Add this hook
+  const navigate = useNavigate(); 
 
   return (
     <div className="home-welcome-box admin-theme">
@@ -571,7 +663,6 @@ function HomePage() {
         </section>
       </main>
 
-      {/* Daily Login Streak Modal */}
       {profile?.role === "student" && (
         <StudentDailyLoginStreak
           isOpen={showDailyLogin}
