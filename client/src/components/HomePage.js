@@ -7,6 +7,7 @@ import { authFetch } from "../services/api";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import StudentDailyLoginStreak from "./Student/StudentDailyLoginStreak";
+import "../CSS/CoursePage.css"
 
 import { Link, useNavigate } from "react-router-dom";
 import BADGE_LIBRARY from "../services/badgeConfig";
@@ -131,11 +132,63 @@ function Footer() {
 // --- Dashboard Views ---
 
 const StudentDashboard = ({ profile, gamification }) => {
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const { user } = useContext(AuthContext);
+
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("materials");
+
   // Logic copied from ProfilePage.js to calculate level
   const currentLevel = gamification?.level || 1;
   const currentPoints = gamification?.points || 0;
   const currentStreak = gamification?.streak || 0;
   const badgesCount = gamification?.badges?.length || 0;
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      if (!user) return;
+      try {
+        const response = await authFetch(
+          "http://localhost:5000/api/students/courses",
+          { method: "GET" },
+          user
+        );
+        if (response.success) {
+          // show only courses where student is enrolled
+          const myEnrolled = response.data.filter(course =>
+            course.enrolledStudents && course.enrolledStudents.includes(user.uid)
+          );
+          setEnrolledCourses(myEnrolled);
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+    fetchCourses();
+  }, [user]);
+
+  const courseColors = [
+  "linear-gradient(135deg, rgba(255, 0, 0, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%)",  
+  "linear-gradient(135deg, rgba(255, 174, 0, 0.45) 0%, rgba(239, 68, 68, 0.45) 100%)",   
+  "linear-gradient(135deg, rgba(255, 251, 0, 0.5) 0%, rgba(37, 99, 235, 0.5) 100%)",     
+  "linear-gradient(135deg, rgba(25, 0, 255, 0.5) 0%, rgba(5, 150, 105, 0.5) 100%)",     
+  "linear-gradient(135deg, rgba(245, 158, 11, 0.5) 0%, rgba(249, 115, 22, 0.5) 100%)",    
+];
+
+const OpenCourseModal = (course) => {
+  setSelectedCourse(course);
+  setActiveTab("materials");
+  setIsModalOpen(true);
+};
+
+const closeCourseModal = () => {
+  setSelectedCourse(null);
+  setIsModalOpen(false);
+};
 
   return (
     <div className="student-dashboard">
@@ -162,28 +215,33 @@ const StudentDashboard = ({ profile, gamification }) => {
         </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon icon-purple">⭐</div>
-          <h3>{currentLevel}</h3>
-          <p>Current Level</p>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon icon-green">💎</div>
-          <h3>{currentPoints}</h3>
-          <p>Total Points</p>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon icon-orange">🔥</div>
-          <h3>{currentStreak}</h3>
-          <p>Day Streak</p>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon icon-blue">🏅</div>
-          <h3>{badgesCount}</h3>
-          <p>Badges Earned</p>
-        </div>
-      </div>
+        <div className="stats-grid">
+    <div className="stat-card">
+      <div className="stat-icon icon-purple">⭐</div>
+      <h3>{currentLevel}</h3>
+      <p>Current Level</p>
+    </div>
+    <div className="stat-card">
+      <div className="stat-icon icon-green">💎</div>
+      <h3>{currentPoints}</h3>
+      <p>Total Points</p>
+    </div>
+    <div className="stat-card">
+      <div className="stat-icon icon-orange">🔥</div>
+      <h3>{currentStreak}</h3>
+      <p>Day Streak</p>
+    </div>
+    <div className="stat-card">
+      <div className="stat-icon icon-blue">🏅</div>
+      <h3>{badgesCount}</h3>
+      <p>Badges Earned</p>
+    </div>
+    <div className="stat-card">
+      <div className="stat-icon icon-teal">📚</div>
+      <h3>{enrolledCourses.length}</h3>
+      <p>Courses Enrolled</p>
+    </div>
+  </div>
 
       <div className="progress-card">
         <div className="progress-card-header">📈 Your Progress</div>
@@ -212,6 +270,58 @@ const StudentDashboard = ({ profile, gamification }) => {
           <span>🔥</span>
           <span>{currentStreak} Day Streak - {currentStreak >= 7 ? "You're on fire!" : "Keep going!"}</span>
         </div>
+      </div>
+
+       <div className="continue-learning-section">
+        <div className="section-header">
+          <h2>📚 Continue Learning</h2>
+          <Link to="/CoursePage" className="view-all-link">View All →</Link>
+        </div>
+
+        {coursesLoading ? (
+          <p>Loading courses..</p>
+        ) : enrolledCourses.length > 0 ? (
+          <div className="courses-grid">
+            {enrolledCourses.map((course, index) => {
+              const content = course.content || [];
+              const quizzesCount = content.filter(item =>
+                item.type === 'quiz' || item.type === 'test'
+              ).length;
+              const materialsCount = content.length - quizzesCount;
+              return (
+                <div key={course.id} className="course-card">
+                  <div
+                    className="course-card-header"
+                    style={{ background: courseColors[index % courseColors.length] }}
+                  >
+                    {course.title?.charAt(0) || "C"}
+                  </div>
+                  <div className="course-card-body">
+                    <h3>{course.title}</h3>
+                    <p className="course-instructor">🧑‍🏫 Instructor: {course.instructorName || "Unknown"}</p>
+                    <div className="course-stats">
+                      <span>📖 {materialsCount} Materials</span>
+                      <span>📝 {quizzesCount} Quizzes</span>
+                    </div>
+                    <button className="continue-btn" onClick={() => OpenCourseModal(course)}>
+                      Continue Learning → 
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="no-courses">
+            <div className="no-courses-icon">📚</div>
+            <p>You haven't enrolled in any courses yet.</p>
+            <Link to="/CoursePage">
+              <button className="btn btn-primary" style={{ marginTop: '12px' }}>
+                Browse Courses
+              </button>
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="dashboard-grid">
@@ -281,12 +391,97 @@ const StudentDashboard = ({ profile, gamification }) => {
           </div>
         </div>
       </div>
+
+      {isModalOpen && selectedCourse && (
+        <div className="modal-overlay" onClick={closeCourseModal}>
+          <div className="course-modal-box" onClick={(e) => e.stopPropagation()}>
+            
+            <div className="course-modal-header">
+              <div className="course-title-row">
+                <h2>{selectedCourse.title}</h2>
+                <span className="enrolled-badge">✓ ENROLLED</span>
+              </div>
+              <div className="course-instructor">
+                <strong>🧑‍🏫 Instructor:</strong> {selectedCourse.instructorName || "Unknown"}
+              </div>
+              <div className="course-desc">
+                {selectedCourse.description}
+              </div>
+            </div>
+
+            <div className="tab-navigation">
+              <button
+                className={`tab-btn ${activeTab === "materials" ? "active" : ""}`}
+                onClick={() => setActiveTab("materials")}
+              >
+                📚 Course Materials
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "assessments" ? "active" : ""}`}
+                onClick={() => setActiveTab("assessments")}
+              >
+                📖 Assessments
+              </button>
+            </div>
+
+            <div className="course-modal-content">
+              {activeTab === "materials" && (
+                <>
+                  <h3>Course Materials</h3>
+                  {selectedCourse.content && selectedCourse.content.length > 0 ? (
+                    <div className="file-list student-file-list">
+                      {selectedCourse.content.map((file) => (
+                        <div key={file.id} className="file-item">
+                          {file.type === "quiz" ? (
+                            <div>
+                              <p>{file.title}</p>
+                              <button>Take Assessment</button>
+                            </div>
+                          ) : (
+                            <a href={file.fileUrl} target="_blank" rel="noreferrer">
+                              {file.title}
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="locked-text">No materials uploaded yet.</p>
+                  )}
+                </>
+              )}
+
+              {activeTab === "assessments" && (
+                <>
+                  <h3>Assessments</h3>
+                  <p className="locked-text">No assessments yet.</p>
+                </>
+              )}
+            </div>
+
+            <div className="course-modal-footer">
+              <button
+                className="modal-btn"
+                disabled
+                style={{ background: "#4cd137", cursor: "default" }}
+              >
+                Already Enrolled
+              </button>
+              <button className="text-btn" onClick={closeCourseModal}>
+                Close
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
 
 const InstructorDashboard = ({ profile }) => {
-  const navigate = useNavigate(); // Add this hook
+  const navigate = useNavigate(); 
 
   return (
     <div className="home-welcome-box instructor-theme">

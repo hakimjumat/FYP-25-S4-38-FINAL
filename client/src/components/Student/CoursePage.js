@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useLocation } from "react-router-dom";
 import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
 import "../../CSS/CourseEditorPage.css"; // Reusing grid styles
@@ -14,6 +15,10 @@ function CoursePage() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // controls popup visibility
   const [activeTab, setActiveTab] = useState("materials");  // which tab is active in popup
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const openCourseId = searchParams.get("openCourse");
 
   // Fetch all courses
   const fetchCourses = async () => {
@@ -36,6 +41,18 @@ function CoursePage() {
   useEffect(() => {
     if (user) fetchCourses();
   }, [user]);
+
+  useEffect(() => {
+    if (openCourseId && courses.length > 0) {
+      const courseToOpen = courses.find(course => course.id === openCourseId);
+      if (courseToOpen) {
+        const enrolled = courseToOpen.enrolledStudents?.includes(user?.uid);
+        setSelectedCourse(courseToOpen);
+        setActiveTab(enrolled ? "materials": "reviews");
+        setIsModalOpen(true);
+      }
+    }
+  }, [openCourseId, courses, user]);
 
   // Safely get the user ID, or use an empty string if user is null
   const userId = user?.uid || "";
