@@ -19,6 +19,9 @@ router.put("/profile", studentController.updateProfile);
 // POST /api/students/points - Add points
 router.post("/points", studentController.addPoints);
 
+// POST /api/students/changecurrency - Change Currency Value by input
+router.post("/changecurrency", studentController.changeCurrency);
+
 // POST /api/students/login - Record daily login
 router.post("/login", studentController.recordLogin);
 

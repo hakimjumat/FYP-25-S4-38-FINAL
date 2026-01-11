@@ -13,9 +13,20 @@ function RewardStorePage() {
     const [isModalOpen, setIsModalOpen] = useState(false); // controls popup visibility
     const [loading, setLoading] = useState(true);
 
+    //very stupid point increment
+    const [ten, setshite] = useState({points:10});
+
     const openRewardDetails = (rewardtag) => {
         setRewardID(rewardtag);
         setIsModalOpen(true);
+    }
+
+    const debugaddpoints = async () => {
+        console.log(ten);
+        //await authFetch("http://localhost:5000/api/students/points", {method: "POST", body:JSON.stringify(ten)}, user)
+        await authFetch("http://localhost:5000/api/students/changecurrency", {method: "POST", body:JSON.stringify(ten)}, user)
+        //setLoading(true);
+        //loadData();
     }
 
     useEffect(() => {
@@ -72,8 +83,11 @@ function RewardStorePage() {
             <h1>Rewards Store</h1>
             <p>Redeem your points for prizes</p>
             <p>
-                Your Balance: {gamification.points}
+                Your Balance: {gamification.currency}
             </p>
+            <button onClick = {debugaddpoints}>
+                Debug: Add Currency
+            </button>
             <div className="courses-grid">
                 <div
                     className="course-card"

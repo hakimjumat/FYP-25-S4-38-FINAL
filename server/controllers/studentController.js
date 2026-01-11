@@ -148,7 +148,7 @@ class StudentController {
       if (!points || points <= 0) {
         return res.status(400).json({
           success: false,
-          message: "Invalid points value",
+          message: "Invalid points value" + points,
         });
       }
 
@@ -198,5 +198,32 @@ class StudentController {
       next(error);
     }
   }
+
+  // Change currency amount in student gamification profile
+  async changeCurrency(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { points } = req.body;
+
+      console.log(points);
+
+      if (!points) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid currency value" + points,
+        });
+      }
+
+      await gamificationModel.changeGamificationCurrency(uid, points);
+
+      res.status(200).json({
+        success: true,
+        message: `${points} currency added successfully`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 module.exports = new StudentController();

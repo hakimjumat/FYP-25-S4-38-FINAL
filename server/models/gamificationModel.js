@@ -34,6 +34,7 @@ class GamificationModel {
           streak: 0,
           lastLogin: null,
           loginHistory: [],
+          currency: 0,
         };
       }
 
@@ -58,6 +59,7 @@ class GamificationModel {
           streak: 0,
           lastLogin: new Date(),
           loginHistory: [new Date()],
+          currency: 0,
         });
       } else {
         // Update existing points
@@ -130,6 +132,7 @@ class GamificationModel {
           streak: 1,
           lastLogin: now,
           loginHistory: [now], // Initialize history with today
+          currency: 0,
         });
         return { streak: 1, loggedInDays: [now.getDate()] };
       }
@@ -233,6 +236,31 @@ class GamificationModel {
       return { success: true, points: newPoints, level: newlevel };
     } catch (error) {
       throw new Error(`Failed to claim daily reward: ${error.message}`);
+    }
+  }
+
+  //changes amount of currency in account
+  async changeGamificationCurrency(uid, changeByValue){
+    try {
+      const docRef = this.collection.doc(uid);
+      const doc = await docRef.get();
+
+      if (!doc.exists) {
+        throw new Error("User profile not found");
+      } 
+      else {
+        // Update existing points
+        const data = doc.data();
+        const currentPoints = data.currency || 0;
+        const newCurrencyAmount = currentPoints + changeByValue;
+        await docRef.update({
+          currency: newCurrencyAmount,
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      throw new Error(`Failed to change currency value: ${error.message}`);
     }
   }
 }
