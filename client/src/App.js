@@ -23,7 +23,7 @@ import InternshipListPage from "./components/Student/InternshipListPage";
 import CoursePage from "./components/Student/CoursePage";
 import RewardsPage from "./components/Student/RewardStorePage";
 import AdminUserPage from "./components/Admin/AdminUserPage";
-
+import AssessmentPage from "./components/Student/AssessmentPage";
 import CreateUserPage from "./components/Admin/CreateUserPage";
 import ViewAccountPage from "./components/Admin/ViewAccountPage";
 
@@ -67,6 +67,11 @@ function App() {
               <Route
                 path="/instructor/course/:courseId/assessment"
                 element={<AssessmentEditorPage />}
+              />
+
+              <Route
+                path="/student/course/assessment/:assessmentId"
+                element={<AssessmentPage />}
               />
 
               <Route path="/admin/users" element={<AdminUserPage />} />

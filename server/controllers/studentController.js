@@ -5,7 +5,8 @@
 const userModel = require("../models/userModel");
 const gamificationModel = require("../models/gamificationModel");
 const courseModel = require("../models/courseModel");
-const internshipModel = require("../models/internshipModel")
+const internshipModel = require("../models/internshipModel");
+const assessmentModel = require("../models/assessmentModel");
 
 class StudentController {
   // Get student profile along with gamification data
@@ -70,10 +71,11 @@ class StudentController {
     }
   }
 
-  async getAssessment(req, res, next) {
+  async getAllAssessment(req, res, next) {
     try {
       //need to change to a function to get data from assessment table
-      const assessment = await courseModel.getAllCourses();
+      //console.log(req);
+      const assessment = await assessmentModel.getAllAssessments();
       res.status(200).json({
         success: true,
         data: assessment,
