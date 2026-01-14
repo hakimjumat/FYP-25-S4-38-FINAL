@@ -19,6 +19,16 @@ function AssessmentPage () {
     let remainingtime = totaltime;
     let timerInterval = null;
 
+    let questionIndex = 0;
+
+    let userAnswerArray = [];
+
+    const [selectedValue, setSelectedValue] = useState("");
+
+    const handleRadioChange = (value) => {
+        setSelectedValue(value);
+    };
+
     const goBackToCourse = () => {
         navigate("/CoursePage");
     };
@@ -89,6 +99,49 @@ function AssessmentPage () {
         document.getElementById("timerdisplay").innerHTML = "Remaining Time: " + `${hrs}:${mins}:${secs}`;
     }
 
+    function IncrementQuestion(){
+        let x = userAnswerArray.length;
+        if(x === questionIndex){
+            //no answer for latest question
+            userAnswerArray.push(getAnswer());
+        }
+        questionIndex++;
+    }
+
+    function submitAss(){
+        let x = userAnswerArray.length;
+        if(x === questionIndex){
+            //no answer for latest question
+            userAnswerArray.push(getAnswer());
+            setSelectedValue("");
+        }
+        if(wholeAssignment.type === "quiz")
+        {
+            //mark now
+            markAssessment();
+        }
+        else{
+            //send to db
+        }
+    }
+
+    function getAnswer(){
+        return selectedValue;
+    }
+
+    function markAssessment(){
+        for(let i = 0; i < userAnswerArray; i++)
+        {
+            if(userAnswerArray[i] === (questionList[i].correct).toString())
+            {
+                console.log("Q" + i + " is correct.");
+            }
+            else{
+                console.log("Q" + i + " is wrong.");
+            }
+        }
+    }
+
     if (loading) return <div>Loading assessment...</div>;
 
       return(
@@ -109,49 +162,59 @@ function AssessmentPage () {
                     <div>
                         <h3>{wholeAssignment.title}</h3>
                         <p id= "timerdisplay">Remaining Time:</p>
-                        {
-                            questionList.map((question) => {
-                                    return(
+                        {      
+                            <div>
+                                {
+                                    //mcq
+                                    questionList[questionIndex].type === "mcq" && (
                                         <div>
-                                            {
-                                                //mcq
-                                                question.type === "mcq" && (
-                                                    <div>
-                                                        <p>{question.text}</p>
-                                                        <div>
-                                                            <input type="radio" id="ans1" name="mcq_qn" value="ans1" />
-                                                            <label for="ans1">1) {question.options[0]}</label>
-                                                        </div>
-                                                        <div>
-                                                            <input type="radio" id="ans2" name="mcq_qn" value="ans2" />
-                                                            <label for="ans1">2) {question.options[1]}</label>
-                                                        </div>
-                                                        <div>
-                                                            <input type="radio" id="ans3" name="mcq_qn" value="ans3" />
-                                                            <label for="ans1">3) {question.options[2]}</label>
-                                                        </div>
-                                                        <div>
-                                                            <input type="radio" id="ans4" name="mcq_qn" value="ans4" />
-                                                            <label for="ans1">4) {question.options[3]}</label>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            }
-                                            {
-                                                //short ans
-                                                question.type === "short_answer" && (
-                                                    <div>
-                                                        <p>{question.text}</p>
-                                                        <label>
-                                                            Answer: <input name="short_ans_qn" />
-                                                        </label>
-                                                    </div>
-                                                )
-                                            }
+                                            <p>{questionList[questionIndex].text}</p>
+                                            <div>
+                                                <input type="radio" id="ans1" name="mcq_qn" value="0" checked={selectedValue === "0"} onChange={() => handleRadioChange("0")}/>
+                                                <label for="ans1">1) {questionList[questionIndex].options[0]}</label>
+                                            </div>
+                                            <div>
+                                                <input type="radio" id="ans2" name="mcq_qn" value="1" checked={selectedValue === "1"} onChange={() => handleRadioChange("1")}/>
+                                                <label for="ans2">2) {questionList[questionIndex].options[1]}</label>
+                                            </div>
+                                            <div>
+                                                <input type="radio" id="ans3" name="mcq_qn" value="2" checked={selectedValue === "2"} onChange={() => handleRadioChange("2")}/>
+                                                <label for="ans3">3) {questionList[questionIndex].options[2]}</label>
+                                            </div>
+                                            <div>
+                                                <input type="radio" id="ans4" name="mcq_qn" value="3" checked={selectedValue === "3"} onChange={() => handleRadioChange("3")}/>
+                                                <label for="ans4">4) {questionList[questionIndex].options[3]}</label>
+                                            </div>
                                         </div>
-                                    );
+                                    )
                                 }
-                            )
+                                {
+                                    //short ans
+                                    questionList[questionIndex].type === "short_answer" && (
+                                        <div>
+                                            <p>{questionList[questionIndex].text}</p>
+                                            <label>
+                                                Answer: <input name="short_ans_qn" />
+                                            </label>
+                                        </div>
+                                    )
+                                }
+                                <span>
+                                    {
+                                        //back
+                                        questionIndex > 0 && (
+                                            <button>Previous Question</button>
+                                        )
+                                    }
+                                    {
+                                        (questionIndex+1) === questionList.length ? (
+                                            <button onClick={submitAss}>Submit Assessment</button>
+                                        ) : (
+                                            <button onClick={IncrementQuestion}>Next Question</button>
+                                        )
+                                    }
+                                </span>
+                            </div>
                         }
                     </div>
                 )
