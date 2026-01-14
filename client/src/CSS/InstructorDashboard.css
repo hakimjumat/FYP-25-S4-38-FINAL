@@ -200,15 +200,6 @@
   gap: 12px;
 }
 
-.actions-button.secondary {
-  background-color: #e3f2fd;
-  color: #0984e3;
-}
-
-.actions-button.secondary:hover {
-  background-color: #d0ebff;
-}
-
 @media (max-width: 768px) {
   .instructor-welcome-row {
     flex-direction: column;

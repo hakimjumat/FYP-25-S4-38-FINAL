@@ -11,6 +11,14 @@ import { Link, resolvePath, useNavigate, useLocation } from "react-router-dom";
 // If it is in 'config', change this to: "../../config/badgeConfig"
 import BADGE_LIBRARY from "../../services/badgeConfig.js";
 
+const courseColors = [
+    "linear-gradient(135deg, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.25) 100%)",
+    "linear-gradient(135deg, rgba(0,255,0,0.45) 0%, rgba(0,255,0,0.2) 100%)",
+    "linear-gradient(135deg, rgba(255,255,0,0.5) 0%, rgba(255,255,0,0.25) 100%)",
+    "linear-gradient(135deg, rgba(0,0,255,0.5) 0%, rgba(0,0,255,0.25) 100%)",
+    "linear-gradient(135deg, rgba(245,165,0,0.5) 0%, rgba(245,165,0,0.25) 100%)",
+  ];
+
 function CourseEditorPage() {
   const { user } = useContext(AuthContext);
   const [courses, setCourses] = useState([]);
@@ -307,7 +315,7 @@ function CourseEditorPage() {
           <h1>Courses Editor (Instructor)</h1>
           <p>Manage your existing courses or create new ones.</p>
           <div className="courses-grid">
-            {courses.map((course) => (
+            {courses.map((course, index) => (
               <div
                 key={course.id}
                 className="course-card"
@@ -316,11 +324,17 @@ function CourseEditorPage() {
                 <div
                   className="course-card-image"
                   style={{
-                    backgroundImage: `url('https://placehold.co/600x400?text=${course.title.charAt(
-                      0
-                    )}')`,
+                    background: courseColors[index % courseColors.length],
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "72px",
+                    fontWeight: "800",
+                    color: "white",
                   }}
-                ></div>
+                >
+                  {course.title.charAt(0).toUpperCase()}
+                </div>
                 <div className="course-card-content">
                   <h3>{course.title}</h3>
                   <p>{course.description.substring(0, 100)}...</p>

@@ -65,7 +65,7 @@ export default function InstructorDashboard({ profile }) {
         </div>
 
         <div className="welcome-actions">
-          <button className="actions-button secondary"
+          <button className="actions-button"
           onClick={() => navigate("/CourseEditorPage")}
           type="button">
             My Courses
