@@ -104,6 +104,23 @@ class GamificationModel {
     }
   }
 
+  async addrecord(uid, rewardID){
+    try{
+      const docRef = this.collection.doc(uid);
+      const doc = await docRef.get();
+      const now = new Date();
+      const todayDateStr = now.toDateString(); // e.g., "Fri Dec 19 2025"
+
+      const currentincentiverecord = doc.exists ? doc.data().incentiveTransactionHistory || [] : [];
+      currentincentiverecord.push({reward: rewardID, dateRedeemed: todayDateStr});
+      await docRef.update({incentiveTransactionHistory: currentincentiverecord});
+
+      return { success: true };
+    } catch (error){
+      throw new Error(`Failed to update Transaction History: ${error.message}`);
+    }
+  }
+
   // daily log in streak update + extract day numbers for the current month + update loginHistory
   async updateStreak(uid) {
     try {

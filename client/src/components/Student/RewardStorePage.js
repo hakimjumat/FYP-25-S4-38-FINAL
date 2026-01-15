@@ -29,6 +29,11 @@ function RewardStorePage() {
                 await authFetch("http://localhost:5000/api/students/changecurrency", {method: "POST", body:JSON.stringify({points:-50})}, user)
             }catch (error){
                 console.error("Change currency error:", error);
+            }
+            try{
+                await authFetch("http://localhost:5000/api/students/updateTransactionHistory", {method: "POST", body: JSON.stringify({rewardID: rewardID})}, user)
+            }catch(error){
+                console.error("Update Transaction History error:", error);
             }finally{
                 setLoading(true);
                 forceReloadData();
@@ -40,6 +45,11 @@ function RewardStorePage() {
                 await authFetch("http://localhost:5000/api/students/changecurrency", {method: "POST", body:JSON.stringify({points:-100})}, user)
             }catch (error){
                 console.error("Change currency error:", error);
+            }
+            try{
+                await authFetch("http://localhost:5000/api/students/updateTransactionHistory", {method: "POST", body: JSON.stringify({rewardID: rewardID})}, user)
+            }catch(error){
+                console.error("Update Transaction History error:", error);
             }finally{
                 setLoading(true);
                 forceReloadData();
@@ -51,6 +61,11 @@ function RewardStorePage() {
                 await authFetch("http://localhost:5000/api/students/changecurrency", {method: "POST", body:JSON.stringify(ten)}, user)
             }catch (error){
                 console.error("Change currency error:", error);
+            }
+            try{
+                await authFetch("http://localhost:5000/api/students/updateTransactionHistory", {method: "POST", body: JSON.stringify({rewardID: rewardID})}, user)
+            }catch(error){
+                console.error("Update Transaction History error:", error);
             }finally{
                 setLoading(true);
                 forceReloadData();

@@ -227,5 +227,31 @@ class StudentController {
     }
   }
 
+  async updateIncentiveTransactionHistory(req, res, next){
+    try {
+      console.log("Trying to update transaction History");
+      const uid = req.user.uid;
+      const {rewardID} = req.body;
+      
+      console.log(rewardID);
+
+      if (!rewardID) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid rewardID" + rewardID,
+        });
+      }
+
+      await gamificationModel.addrecord(uid, rewardID);
+
+      res.status(200).json({
+        success: true,
+        message: `${rewardID} currency added successfully`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
 module.exports = new StudentController();

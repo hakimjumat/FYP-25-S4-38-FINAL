@@ -39,4 +39,6 @@ router.get("/getcourseassessment", studentController.getAllAssessment);
 
 router.get("/internships", studentController.getAllInternships)
 
+router.post("/updateTransactionHistory", studentController.updateIncentiveTransactionHistory);
+
 module.exports = router;
