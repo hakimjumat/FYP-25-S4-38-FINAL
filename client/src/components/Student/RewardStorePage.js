@@ -16,7 +16,9 @@ function RewardStorePage() {
     const [loading, setLoading] = useState(true);
     const [cfmMsg, setcfmMsg] = useState(false);
     const [rewardDisplay, setrewardDisplay] = useState(false);
+    const [THistDisplay, setTHistDisplay] = useState(false);
     const [urBrokelol, setBrokeness] = useState(null);
+    const [THistArray, setTHistArray] = useState(null);
 
     //very stupid point increment
     const [ten, setshite] = useState({points:10});
@@ -132,6 +134,15 @@ function RewardStorePage() {
         setIsModalOpen(false);
     }
 
+    const openTHistory = () => {
+        setTHistDisplay(true);
+        setTHistArray(gamification.incentiveTransactionHistory);
+    }
+
+    const closeTHistory = () => {
+        setTHistDisplay(false);
+    }
+
     const forceReloadData = async () => {
         try {
             // 1. Fetch User Identity & Role first
@@ -231,6 +242,9 @@ function RewardStorePage() {
             </p>
             <button onClick = {debugaddpoints}>
                 Debug: Add Currency
+            </button>
+            <button onClick = {openTHistory}>
+                View Transaction History
             </button>
             <div className="courses-grid">
                 <div
@@ -407,6 +421,34 @@ function RewardStorePage() {
                                 </div>
                             <div className="course-modal-footer">
                                 <button className="modal-btn" onClick={closeReward}>
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+            {
+                THistDisplay === true && (
+                    <div className="modal-overlay">
+                        <div className="course-modal-box">
+                                <div className="course-modal-header">
+                                    <div className="course-title-row">
+                                            Transaction History
+                                    </div>
+                                    {
+                                        gamification.incentiveTransactionHistory.map((entry) => (
+                                            <span>
+                                                <p>{entry.reward}</p>
+                                                <p>Redeemed on: {entry.dateRedeemed}</p>
+                                            </span>
+                                        )
+
+                                        )
+                                    }
+                                </div>
+                            <div className="course-modal-footer">
+                                <button className="modal-btn" onClick={closeTHistory}>
                                     Close
                                 </button>
                             </div>
