@@ -1,0 +1,145 @@
+.admin-dashboard {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-welcome {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  margin-bottom: 18px;
+}
+
+.admin-welcome-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.admin-welcome h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+  color: #2d3436;
+  font-weight: 800;
+}
+
+.admin-welcome p {
+  margin: 0;
+  color: #636e72;
+  font-size: 15px;
+}
+
+.admin-welcome strong {
+  color: #2d3436;
+}
+
+/* Action Buttons */
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-action-btn {
+  background-color: rgb(0, 204, 255);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-action-btn:hover {
+  background-color: rgb(0, 102, 255);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(9, 132, 227, 0.25);
+}
+
+.admin-action-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(9, 132, 227, 0.2);
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+}
+
+.admin-stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.admin-stat-title {
+  font-size: 13px;
+  color: #636e72;
+  font-weight: 700;
+}
+
+.admin-stat-value {
+  font-size: 28px;
+  font-weight: 900;
+  margin: 0 0 4px;
+  color: #2d3436;
+}
+
+.admin-stat-desc {
+  font-size: 13px;
+  margin: 0;
+  color: #636e72;
+}
+
+@media (max-width: 900px) {
+  .admin-welcome-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .admin-action-btn {
+    width: 100%;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-dashboard {
+    padding: 16px;
+  }
+
+  .admin-welcome h1 {
+    font-size: 20px;
+  }
+
+  .admin-stat-value {
+    font-size: 24px;
+  }
+}
