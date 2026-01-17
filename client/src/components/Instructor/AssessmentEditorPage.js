@@ -12,6 +12,7 @@ function AssessmentEditorPage() {
   const [title, setTitle] = useState("");
   const [timeLimit, setTimeLimit] = useState(60);
   const [questions, setQuestions] = useState([]);
+  const [weightage, setWeightage] = useState(100);
   const [assessmentType, setAssessmentType] = useState("quiz"); // New state for assessment type
 
   // helper function to go back correctly instead of routing to CourseEditorPage directly by passing courseId in state
@@ -52,6 +53,19 @@ function AssessmentEditorPage() {
     if (!title || questions.length === 0)
       return alert("Title and Questions required");
 
+    let finalWeightage = 0;
+
+    if (assessmentType === "test") {
+      finalWeightage = parseFloat(weightage);
+      if (isNaN(finalWeightage) || finalWeightage <= 0) {
+        return alert(
+          "Please provide a valid weightage for the graded test: 0.01% to 100.00%"
+        );
+      }
+    } else {
+      finalWeightage = 0; // Quizzes are ungraded
+    }
+
     try {
       await authFetch(
         "http://localhost:5000/api/instructors/add-assessment",
@@ -62,6 +76,7 @@ function AssessmentEditorPage() {
             title,
             type: assessmentType, // <--- NOW DYNAMIC (uses state)
             timeLimit: parseInt(timeLimit),
+            weightage: finalWeightage,
             totalPoints: questions.length * 10,
             questions,
           }),
@@ -109,6 +124,27 @@ function AssessmentEditorPage() {
           <option value="quiz">Practice Quiz (Ungraded)</option>
         </select>
       </div>
+
+      {/* [UPDATE] CONDITIONAL RENDERING & INPUT LIMITS */}
+      {assessmentType === "test" && (
+        <div className="form-group" style={{ marginBottom: "20px" }}>
+          <label>Weightage (%):</label>
+          <input
+            className="modal-input"
+            type="number"
+            min="0.01" // HTML5 Validation hint
+            max="100.00" // HTML5 Validation hint
+            step="0.01" // Allows decimals like 10.55
+            value={weightage}
+            onChange={(e) => setWeightage(e.target.value)}
+            placeholder="0.01 - 100.00"
+          />
+          <small style={{ color: "#666" }}>
+            Enter a value between 0.01 and 100. Ungraded quizzes are
+            automatically 0%.
+          </small>
+        </div>
+      )}
 
       <div className="form-group" style={{ marginBottom: "20px" }}>
         <label>Time Limit (Minutes):</label>

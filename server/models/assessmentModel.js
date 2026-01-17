@@ -35,6 +35,17 @@ class AssessmentModel {
     }
   }
 
+  // [NEW] Get Assessment details by ID
+  async getAssessmentById(assessmentId) {
+    try {
+      const doc = await this.collection.doc(assessmentId).get();
+      if (!doc.exists) return null;
+      return { id: doc.id, ...doc.data() };
+    } catch (error) {
+      throw new Error(`Error fetching assessment: ${error.message}`);
+    }
+  }
+
   async deleteAssessment(assessmentId) {
     try {
       await this.collection.doc(assessmentId).delete();
@@ -44,11 +55,11 @@ class AssessmentModel {
     }
   }
 
-  async getAllAssessments(){
-    try{
+  async getAllAssessments() {
+    try {
       const snapshot = await this.collection.get();
       return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    }catch(error){
+    } catch (error) {
       throw new Error(error.message);
     }
   }

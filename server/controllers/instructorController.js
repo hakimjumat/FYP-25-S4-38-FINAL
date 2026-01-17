@@ -7,6 +7,24 @@ const courseModel = require("../models/courseModel");
 const assessmentModel = require("../models/assessmentModel");
 
 class InstructorController {
+  // [NEW] Get full details of a specific assessment
+  async getAssessment(req, res, next) {
+    try {
+      const { assessmentId } = req.params;
+      const assessment = await assessmentModel.getAssessmentById(assessmentId);
+
+      if (!assessment) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Assessment not found" });
+      }
+
+      res.status(200).json({ success: true, data: assessment });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Get instructor profile
   async getProfile(req, res, next) {
     try {
@@ -87,13 +105,13 @@ class InstructorController {
   // Create a new empty course
   async createCourse(req, res, next) {
     try {
-      const { title, description } = req.body;
+      const { title, description, category } = req.body;
       const instructorId = req.user.uid;
 
-      if (!title || !description) {
+      if (!title || !description || !category) {
         return res.status(400).json({
           success: false,
-          message: "Title and description are required",
+          message: "Title, description, and category are required",
         });
       }
 
@@ -113,6 +131,7 @@ class InstructorController {
       const newCourse = await courseModel.createCourse({
         title,
         description,
+        category,
         instructorId,
         instructorName, // <--- Now this is guaranteed to be a string
       });

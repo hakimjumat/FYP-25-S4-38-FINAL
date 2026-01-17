@@ -38,19 +38,19 @@ export default function InstructorDashboard({ profile }) {
     const totalCourses = courses.length;
 
     const totalStudents = courses.reduce((sum, c) => {
-      const count = Array.isArray(c.enrolledStudents) ? c.enrolledStudents.length : 0;
+      const count = Array.isArray(c.enrolledStudents)
+        ? c.enrolledStudents.length
+        : 0;
       return sum + count;
     }, 0);
 
-    // rating
-    const avgRatingRaw =
-      courses.length === 0
-        ? 0
-        : courses.reduce((sum, c) => sum + (Number(c.averageRating) || 0), 0) / courses.length;
+    // [UPDATED] Simplified Logic: Just count total number of ratings received
+    const totalRatings = courses.reduce(
+      (sum, c) => sum + (c.ratingCount || 0),
+      0
+    );
 
-    const avgRating = avgRatingRaw ? avgRatingRaw.toFixed(1) : "—";
-
-    return { totalCourses, totalStudents, avgRating };
+    return { totalCourses, totalStudents, totalRatings };
   }, [courses]);
 
   return (
@@ -58,29 +58,28 @@ export default function InstructorDashboard({ profile }) {
       <main className="instructor-main">
         <div className="instructor-welcome instructor-welcome-row">
           <div>
-          <h1>
-            Welcome back, {profile?.firstName || "Instructor"}
-          </h1>
-          <p>Here’s an overview of your teaching performance.</p>
+            <h1>Welcome back, {profile?.firstName || "Instructor"}</h1>
+            <p>Here’s an overview of your teaching performance.</p>
+          </div>
+
+          <div className="welcome-actions">
+            <button
+              className="actions-button"
+              onClick={() => navigate("/CourseEditorPage")}
+              type="button"
+            >
+              My Courses
+            </button>
+
+            <button
+              className="actions-button"
+              onClick={() => navigate("/ProfilePage")}
+              type="button"
+            >
+              My Account
+            </button>
+          </div>
         </div>
-
-        <div className="welcome-actions">
-          <button className="actions-button"
-          onClick={() => navigate("/CourseEditorPage")}
-          type="button">
-            My Courses
-          </button>
-
-          <button
-            className="actions-button"
-            onClick={() => navigate("/ProfilePage")}
-            type="button"
-          >
-            My Account
-          </button>
-
-        </div>
-      </div>
 
         <div className="instructor-stats">
           <div className="instructor-stat-card">
@@ -88,9 +87,7 @@ export default function InstructorDashboard({ profile }) {
               <div className="stat-title">Total Students</div>
             </div>
 
-            <p className="stat-value">
-              {loading ? "…" : stats.totalStudents}
-            </p>
+            <p className="stat-value">{loading ? "…" : stats.totalStudents}</p>
             <p className="stat-desc">Enrolled across all your courses</p>
           </div>
 
@@ -99,21 +96,17 @@ export default function InstructorDashboard({ profile }) {
               <div className="stat-title">Total Courses</div>
             </div>
 
-            <p className="stat-value">
-              {loading ? "…" : stats.totalCourses}
-            </p>
+            <p className="stat-value">{loading ? "…" : stats.totalCourses}</p>
             <p className="stat-desc">Courses you created</p>
           </div>
 
+          {/* [UPDATED] Third Card now shows Total Ratings Count */}
           <div className="instructor-stat-card">
             <div className="stat-top">
-              <div className="stat-title">Average Rating</div>
+              <div className="stat-title">Total Ratings</div>
             </div>
-
-            <p className="stat-value">
-              {loading ? "…" : stats.avgRating}
-            </p>
-            <p className="stat-desc">Based on course ratings (if available)</p>
+            <p className="stat-value">{loading ? "…" : stats.totalRatings}</p>
+            <p className="stat-desc">Total reviews received</p>
           </div>
         </div>
 
@@ -139,7 +132,9 @@ export default function InstructorDashboard({ profile }) {
                   </tr>
                 ) : courses.length === 0 ? (
                   <tr>
-                    <td colSpan="5">No courses found yet. Create one in Course Editor.</td>
+                    <td colSpan="5">
+                      No courses found yet. Create one in Course Editor.
+                    </td>
                   </tr>
                 ) : (
                   courses.map((c) => (
@@ -148,12 +143,19 @@ export default function InstructorDashboard({ profile }) {
                       <td>{c.category || "—"}</td>
                       <td>
                         <span className="rating-badge">
-                          {c.averageRating ? Number(c.averageRating).toFixed(1) : "—"}
+                          {c.averageRating
+                            ? Number(c.averageRating).toFixed(1)
+                            : "—"}
                         </span>
                       </td>
-                      <td>{Array.isArray(c.enrolledStudents) ? c.enrolledStudents.length : 0}</td>
                       <td>
-                        <button className="actions-button"
+                        {Array.isArray(c.enrolledStudents)
+                          ? c.enrolledStudents.length
+                          : 0}
+                      </td>
+                      <td>
+                        <button
+                          className="actions-button"
                           type="button"
                           onClick={() =>
                             navigate("/CourseEditorPage", {

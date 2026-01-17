@@ -10,6 +10,9 @@ router.use(verifyToken);
 // All routes require 'admin' role
 router.use(checkRole(["instructor"]));
 
+// [NEW] Get specific assessment details (Questions & Answers)
+router.get("/assessment/:assessmentId", instructorController.getAssessment);
+
 // GET /api/instructor/profile - Get instructor profile
 router.get("/profile", instructorController.getProfile);
 

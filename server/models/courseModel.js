@@ -10,9 +10,11 @@ class CourseModel {
     try {
       const docRef = await this.collection.add({
         ...courseData,
+        category: courseData.category || "General",
+        rating: 0, //start at 0 stars
+        ratingCount: 0, //track how many ratings received
         content: [], // Array to store lessons/files
         enrolledStudents: [],
-        reviews: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       });

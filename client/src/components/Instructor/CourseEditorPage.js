@@ -12,12 +12,12 @@ import { Link, resolvePath, useNavigate, useLocation } from "react-router-dom";
 import BADGE_LIBRARY from "../../services/badgeConfig.js";
 
 const courseColors = [
-    "linear-gradient(135deg, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.25) 100%)",
-    "linear-gradient(135deg, rgba(0,255,0,0.45) 0%, rgba(0,255,0,0.2) 100%)",
-    "linear-gradient(135deg, rgba(255,255,0,0.5) 0%, rgba(255,255,0,0.25) 100%)",
-    "linear-gradient(135deg, rgba(0,0,255,0.5) 0%, rgba(0,0,255,0.25) 100%)",
-    "linear-gradient(135deg, rgba(245,165,0,0.5) 0%, rgba(245,165,0,0.25) 100%)",
-  ];
+  "linear-gradient(135deg, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.25) 100%)",
+  "linear-gradient(135deg, rgba(0,255,0,0.45) 0%, rgba(0,255,0,0.2) 100%)",
+  "linear-gradient(135deg, rgba(255,255,0,0.5) 0%, rgba(255,255,0,0.25) 100%)",
+  "linear-gradient(135deg, rgba(0,0,255,0.5) 0%, rgba(0,0,255,0.25) 100%)",
+  "linear-gradient(135deg, rgba(245,165,0,0.5) 0%, rgba(245,165,0,0.25) 100%)",
+];
 
 function CourseEditorPage() {
   const { user } = useContext(AuthContext);
@@ -26,14 +26,19 @@ function CourseEditorPage() {
   const location = useLocation();
   // --- VIEW STATE ---
   const [selectedCourse, setSelectedCourse] = useState(null);
-
+  // [NEW] state for assessment viewing
+  const [viewingAssessment, setViewingAssessment] = useState(null);
   // --- MODAL STATE ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState(null);
   const [modalStep, setModalStep] = useState(1);
 
   // --- FORM DATA STATE ---
-  const [formData, setFormData] = useState({ title: "", description: "" });
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "IT", //default
+  });
   const [uploadFile, setUploadFile] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
   const fileInputRef = useRef(null);
@@ -86,11 +91,31 @@ function CourseEditorPage() {
     }
   }, [courses, location.state, navigate]);
 
+  // [NEW] INSTRUCTOR HANDLERS
+  const handleViewAssessment = async (assessmentId) => {
+    setModalLoading(true);
+    try {
+      const res = await authFetch(
+        `http://localhost:5000/api/instructors/assessment/${assessmentId}`,
+        {},
+        user
+      );
+      if (res.success) {
+        setViewingAssessment(res.data);
+        setModalType("view_assessment_details"); // Switch modal view
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load assessment details");
+    } finally {
+      setModalLoading(false);
+    }
+  };
   // === ACTION HANDLERS ===
 
   const openCreateModal = () => {
     setModalType("create_course");
-    setFormData({ title: "", description: "" });
+    setFormData({ title: "", description: "", category: "IT" });
     setModalStep(1);
     setIsModalOpen(true);
   };
@@ -418,6 +443,35 @@ function CourseEditorPage() {
                   }
                   required
                 />
+
+                {/* [NEW] Category Dropdown */}
+                <div style={{ marginBottom: "15px" }}>
+                  <label
+                    style={{
+                      display: "block",
+                      marginBottom: "5px",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Category
+                  </label>
+                  <select
+                    className="modal-input"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                  >
+                    <option value="English">English</option>
+                    <option value="Math">Math</option>
+                    <option value="Science">Science</option>
+                    <option value="IT">IT</option>
+                    <option value="CareerDevelopment">
+                      Career Development
+                    </option>
+                  </select>
+                </div>
+
                 <textarea
                   className="modal-input modal-textarea"
                   placeholder="Description"
@@ -552,10 +606,38 @@ function CourseEditorPage() {
                   selectedCourse.content.length > 0 ? (
                     selectedCourse.content.map((file) => (
                       <div key={file.id} className="file-item">
-                        <span>📄 {file.title}</span>
-                        <a href={file.fileUrl} target="_blank" rel="noreferrer">
-                          Download
-                        </a>
+                        <span>
+                          {file.type === "quiz" || file.type === "test"
+                            ? "📝"
+                            : "📄"}{" "}
+                          {file.title}
+                        </span>
+
+                        {/* CONDITIONAL BUTTON: View for Quiz/Test, Download for Files */}
+                        {file.type === "quiz" || file.type === "test" ? (
+                          <button
+                            onClick={() => handleViewAssessment(file.id)}
+                            style={{
+                              background: "#e1b12c",
+                              color: "white",
+                              border: "none",
+                              padding: "5px 10px",
+                              borderRadius: "5px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            View
+                          </button>
+                        ) : (
+                          <a
+                            href={file.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Download
+                          </a>
+                        )}
                       </div>
                     ))
                   ) : (
@@ -568,7 +650,105 @@ function CourseEditorPage() {
               </div>
             )}
 
-            {/* 4. DELETE */}
+            {/* 4. NEW: Modal View for Assessment Details */}
+            {modalType === "view_assessment_details" && viewingAssessment && (
+              <div style={{ textAlign: "left" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "15px",
+                  }}
+                >
+                  <h2>{viewingAssessment.title}</h2>
+                  <span
+                    style={{
+                      background: "#eee",
+                      padding: "5px 10px",
+                      borderRadius: "15px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    {viewingAssessment.type.toUpperCase()}
+                  </span>
+                </div>
+
+                <div
+                  className="file-list"
+                  style={{
+                    maxHeight: "400px",
+                    overflowY: "auto",
+                    padding: "10px",
+                  }}
+                >
+                  {viewingAssessment.questions.map((q, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        marginBottom: "20px",
+                        borderBottom: "1px solid #eee",
+                        paddingBottom: "10px",
+                      }}
+                    >
+                      <p>
+                        <strong>
+                          Q{idx + 1}: {q.text}
+                        </strong>
+                      </p>
+
+                      {/* Render Options */}
+                      {q.type === "mcq" && (
+                        <div style={{ marginLeft: "15px" }}>
+                          {q.options.map((opt, i) => (
+                            <div
+                              key={i}
+                              style={{
+                                color: i === q.correct ? "#27ae60" : "#333", // Green if correct
+                                fontWeight: i === q.correct ? "bold" : "normal",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
+                            >
+                              {i === q.correct ? "✅" : "⚪"} {opt}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Render Model Answer for Short Answer */}
+                      {q.type === "short_answer" && (
+                        <div
+                          style={{
+                            background: "#f9f9f9",
+                            padding: "8px",
+                            marginTop: "5px",
+                            borderLeft: "3px solid #27ae60",
+                          }}
+                        >
+                          <strong>Model Answer:</strong>{" "}
+                          {q.modelAnswer || "N/A"}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className="modal-btn"
+                  onClick={() => {
+                    setViewingAssessment(null);
+                    setModalType("edit_details");
+                  }}
+                  style={{ marginTop: "15px" }}
+                >
+                  Back to List
+                </button>
+              </div>
+            )}
+
+            {/* 5. DELETE */}
             {modalType === "delete_course" && (
               <div>
                 <h2>Delete Management</h2>
