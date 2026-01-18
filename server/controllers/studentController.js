@@ -7,6 +7,7 @@ const gamificationModel = require("../models/gamificationModel");
 const courseModel = require("../models/courseModel");
 const internshipModel = require("../models/internshipModel");
 const assessmentModel = require("../models/assessmentModel");
+const gradeModel = require("../models/gradeModel");
 
 class StudentController {
   // Get student profile along with gamification data
@@ -97,7 +98,7 @@ class StudentController {
       }
 
       await courseModel.enrollStudent(courseId, uid);
-
+      await gradeModel.createCourseGrade(uid,courseId);
       res.status(200).json({
         success: true,
         message: "Enrolled successfully",
@@ -247,6 +248,27 @@ class StudentController {
       res.status(200).json({
         success: true,
         message: `${rewardID} currency added successfully`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async submitAttempt(req, res, next){
+    try{
+      console.log("Tyring to submit assessment attempt.")
+      const uid = req.user.uid;
+      const courseid = req.body.CID;
+      const assID = req.body.AID;
+      const datatobesent = req.body.datatobesent;
+
+      console.log(JSON.stringify(req.body));
+
+      await gradeModel.submitTestAttempt(uid, courseid, assID, datatobesent);
+
+      res.status(200).json({
+        success: true,
+        message: "Successfully submitted attempt.",
       });
     } catch (error) {
       next(error);
