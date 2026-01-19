@@ -18,6 +18,7 @@ function AssessmentPage () {
     const [attemptData, setAttemptData] = useState(null);
     const [eTime, setETime] = useState(0);
     const [eTotalTime, setETotalTime] = useState(0);
+    const [questionIndex, setquestionIndex] = useState(0);
     const [reviewData, setRD] = useState(null);
     const [sendtoDbalr, setsentalr] = useState(false);
 
@@ -25,16 +26,17 @@ function AssessmentPage () {
     let remainingtime = totaltime;
     const [timerInterval, setTimer] = useState(null);
 
-    let questionIndex = 0;
-
-    let userAnswerArray = [];
+    const [userAnswerArray, setUserAns] = useState([]);
     let elapsedtime = 0;
     let elapsedtimeTotal = 0;
-    let elapsedtimeperQn = [];
+    const [elapsedtimeperQn, setETQ] = useState([]);
 
-    let qngradeData = [];
+    const qngradeData = [];
 
     const [selectedValue, setSelectedValue] = useState("");
+
+    const [markedAlr, setMarkedAlr] = useState(false);
+    const [Requiremarking, setRequiremarking] = useState(false);
 
     const handleRadioChange = (value) => {
         setSelectedValue(value);
@@ -123,11 +125,38 @@ function AssessmentPage () {
         let x = userAnswerArray.length;
         if(x === questionIndex){
             //no answer for latest question
-            userAnswerArray.push(getAnswer());
-            elapsedtimeperQn.push(eTime);
+            let z = [];
+            if(userAnswerArray.length > 0)
+                z = userAnswerArray;
+            z.push(getAnswer());
+            setUserAns(z);
+            //userAnswerArray.push(getAnswer());
+            let aa = [];
+            if(elapsedtimeperQn.length>0)
+                aa = elapsedtimeperQn;
+            aa.push(eTime);
+            setETQ(aa);
             elapsedtime = 0;
         }
-        questionIndex++;
+        else {
+            //should only be hit when you decrement and re-increment questions
+            let z = userAnswerArray;
+            z[x] = getAnswer();
+            setUserAns(z);
+
+            let aa = elapsedtimeperQn;
+            aa[x] = aa[x] + (eTime);
+            setETQ(aa);
+            elapsedtime = 0;
+        }
+        let y = questionIndex + 1;
+        setquestionIndex(y);
+        clearRadioSelection();
+    }
+
+    function DecrementQuestion(){
+        let y = questionIndex - 1;
+        setquestionIndex(y);
     }
 
     const sendtodb = async () => {
@@ -156,18 +185,29 @@ function AssessmentPage () {
         let x = userAnswerArray.length;
         if(x === questionIndex){
             //no answer for latest question
-            userAnswerArray.push(getAnswer());
-            elapsedtimeperQn.push(eTime);
+            //userAnswerArray.push(getAnswer());
+            let z = [];
+            if(userAnswerArray.length > 0)
+                z = userAnswerArray;
+            z.push(getAnswer());
+            setUserAns(z);
+
+            let aa = [];
+            if(elapsedtimeperQn.length>0)
+                aa = elapsedtimeperQn;
+            aa.push(eTime);
+            setETQ(aa);
             elapsedtime = 0;
             setSelectedValue("");
         }
         if(wholeAssignment.type === "quiz")
         {
             //mark now
-            markAssessment();
+            setRequiremarking(true);
+            //markAssessment();
             clearInterval(timerInterval);
-            formatReview();
-            setEnd(true);
+            //formatReview();
+            //setEnd(true);
         }
         else{
             //send to db
@@ -181,7 +221,7 @@ function AssessmentPage () {
     
 
     function markAssessment(){
-        for(let i = 0; i < userAnswerArray; i++)
+        for(let i = 0; i < userAnswerArray.length; i++)
         {
             let correct = false;
             if(userAnswerArray[i] === (questionList[i].correct).toString())
@@ -196,7 +236,7 @@ function AssessmentPage () {
             let singleQnData = {qId: i, isCorrect: correct, timeSpent: elapsedtimeperQn[i], selected: userAnswerArray[i]}
             qngradeData.push(singleQnData);
         }
-        setAttemptData({score: 0, timeTaken: eTotalTime, answers: qngradeData})
+        setAttemptData({assessmentId: assessmentId,score: 0, timeTaken: eTotalTime, answers: qngradeData})
     }
 
     function formatReview(){
@@ -216,8 +256,22 @@ function AssessmentPage () {
         setRD(reviewlist);
     }
 
+    function clearRadioSelection(){
+        const radios = document.getElementsByName('mcq_qn');
+        for (const radio of radios) {
+            radio.checked = false;
+        }
+    }
+
     if(sendtoDbalr === false && endassessment === true && attemptData){
         sendtodb(true);
+    }
+
+    if(Requiremarking === true && markedAlr === false){
+        markAssessment();
+        formatReview();
+        setEnd(true);
+        setMarkedAlr(true);
     }
 
     if (loading) return <div>Loading assessment...</div>;
@@ -291,9 +345,9 @@ function AssessmentPage () {
                                 <span>
                                     {
                                         //back
-                                        questionIndex > 0 && (
-                                            <button>Previous Question</button>
-                                        )
+                                        //questionIndex > 0 && (
+                                        //    <button onclick={DecrementQuestion}>Previous Question</button>
+                                        //)
                                     }
                                     {
                                         (questionIndex+1) === questionList.length ? (
