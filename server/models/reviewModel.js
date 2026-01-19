@@ -48,6 +48,23 @@ class ReviewModel {
       .get();
     return !snapshot.empty;
   }
+
+  // 3. Get reviews for a course by courseId
+  async getReviewsByCourseId(courseId) {
+    try {
+      const snapshot = await this.collection
+        .where("courseId", "==", courseId)
+        .orderBy("createdAt", "desc")
+        .get();
+
+      if (snapshot.empty) return [];
+
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      return []; // Return empty array on error to prevent crash
+    }
+  }
 }
 
 module.exports = new ReviewModel();

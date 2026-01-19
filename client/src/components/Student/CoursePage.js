@@ -2,26 +2,32 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
-import "../../CSS/CourseEditorPage.css"; // Reusing grid styles
+import "../../CSS/CourseEditorPage.css";
 import "../../CSS/CoursePage.css";
 
 function CoursePage() {
-  const { user } = useContext(AuthContext); // get logged in use information
-  const [courses, setCourses] = useState([]); // stores all courses
-  const [loading, setLoading] = useState(true);
-  const [assesments, setAssesment] = useState([]);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  // Modal State
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // controls popup visibility
-  const [activeTab, setActiveTab] = useState("materials");  // which tab is active in popup
-
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const openCourseId = searchParams.get("openCourse");
 
-  // Fetch all courses
+  // --- Data State ---
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // --- Modal State ---
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("materials");
+
+  // --- [NEW] Progress & Review State ---
+  const [progress, setProgress] = useState({
+    viewedItems: [],
+    isCompleted: false,
+  });
+  const [reviewForm, setReviewForm] = useState({ rating: 5, description: "" });
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  // 1. Fetch Courses
   const fetchCourses = async () => {
     try {
       const res = await authFetch(
@@ -29,9 +35,7 @@ function CoursePage() {
         {},
         user
       );
-      if (res.success) {
-        setCourses(res.data);
-      }
+      if (res.success) setCourses(res.data);
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
@@ -43,42 +47,55 @@ function CoursePage() {
     if (user) fetchCourses();
   }, [user]);
 
+  // 2. Handle URL Query Params (Open course from link)
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const openCourseId = searchParams.get("openCourse");
+
     if (openCourseId && courses.length > 0) {
-      const courseToOpen = courses.find(course => course.id === openCourseId);
+      const courseToOpen = courses.find((c) => c.id === openCourseId);
       if (courseToOpen) {
-        const enrolled = courseToOpen.enrolledStudents?.includes(user?.uid);
-        setSelectedCourse(courseToOpen);
-        setActiveTab(enrolled ? "materials": "reviews");
-        setIsModalOpen(true);
+        openCourseDetails(courseToOpen);
       }
     }
-  }, [openCourseId, courses, user]);
+  }, [location.search, courses]);
 
-  // Safely get the user ID, or use an empty string if user is null
-  const userId = user?.uid || "";
+  // 3. [NEW] Fetch Progress when Modal Opens
+  useEffect(() => {
+    if (selectedCourse && isModalOpen && user) {
+      const fetchProgress = async () => {
+        try {
+          // Only fetch if enrolled
+          if (selectedCourse.enrolledStudents?.includes(user.uid)) {
+            const res = await authFetch(
+              `http://localhost:5000/api/students/course-progress/${selectedCourse.id}`,
+              {},
+              user
+            );
+            if (res.success) setProgress(res.data);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchProgress();
+    }
+  }, [selectedCourse, isModalOpen, user]);
 
-  // Sorting: Enrolled courses first
-  const sortedCourses = [...courses].sort((a, b) => {
-    const isEnrolledA = a.enrolledStudents?.includes(user.uid);
-    const isEnrolledB = b.enrolledStudents?.includes(user.uid);
-    return isEnrolledB - isEnrolledA; // True (1) comes before False (0)
-  });
+  // --- Handlers ---
 
   const openCourseDetails = (course) => {
-    const enrolled = course.enrolledStudents?.includes(user.uid); // check if enrolled
+    const enrolled = course.enrolledStudents?.includes(user?.uid);
     setSelectedCourse(course);
-    setActiveTab(enrolled ? "materials" : "reviews"); // enrolled -> start at materials, not enrolled -> start at reviews
+    // If enrolled, go to materials. If not, reviews.
+    setActiveTab(enrolled ? "materials" : "reviews");
     setIsModalOpen(true);
+    // Reset progress state slightly to avoid flickering old data
+    setProgress({ viewedItems: [], isCompleted: false });
   };
 
   const handleEnroll = async () => {
-    if (
-      !window.confirm(
-        `Are you sure you want to enroll in "${selectedCourse.title}"?`
-      )
-    )
-      return;
+    if (!window.confirm(`Enroll in "${selectedCourse.title}"?`)) return;
 
     try {
       const res = await authFetch(
@@ -92,17 +109,86 @@ function CoursePage() {
 
       if (res.success) {
         alert("🎉 Enrollment Successful!");
+        fetchCourses();
         setIsModalOpen(false);
-        fetchCourses(); // Refresh list to update UI
       }
     } catch (error) {
-      console.error(error);
       alert("Failed to enroll.");
     }
   };
 
+  // [NEW] Handle Content Click (Mark as Viewed)
+  const handleContentClick = async (contentId, type, url) => {
+    // 1. Optimistic UI Update
+    if (!progress.viewedItems.includes(contentId)) {
+      const newViewed = [...progress.viewedItems, contentId];
+      const total = selectedCourse.content?.length || 0;
+      const completed = newViewed.length >= total;
+      setProgress({
+        ...progress,
+        viewedItems: newViewed,
+        isCompleted: completed,
+      });
+
+      // 2. API Call in Background
+      try {
+        await authFetch(
+          "http://localhost:5000/api/students/mark-viewed",
+          {
+            method: "POST",
+            body: JSON.stringify({ courseId: selectedCourse.id, contentId }),
+          },
+          user
+        );
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // 3. Actual Action (Open Link or Quiz)
+    if (type === "quiz") {
+      navigate(`/student/course/assessment/${contentId}`);
+    } else {
+      window.open(url, "_blank");
+    }
+  };
+
+  // [NEW] Handle Review Submit
+  const handleReviewSubmit = async () => {
+    if (!reviewForm.description) return alert("Please write a review.");
+    setReviewSubmitting(true);
+    try {
+      await authFetch(
+        "http://localhost:5000/api/students/review",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            courseId: selectedCourse.id,
+            review_rating: reviewForm.rating,
+            review_description: reviewForm.description,
+          }),
+        },
+        user
+      );
+      alert("Review Submitted!");
+      fetchCourses(); // Refresh to see updated reviews
+      setReviewForm({ rating: 5, description: "" }); // Reset form
+    } catch (e) {
+      alert("Failed: " + e.message);
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  // --- Sort Courses (Enrolled First) ---
+  const sortedCourses = [...courses].sort((a, b) => {
+    const isEnrolledA = a.enrolledStudents?.includes(user?.uid) ? 1 : 0;
+    const isEnrolledB = b.enrolledStudents?.includes(user?.uid) ? 1 : 0;
+    return isEnrolledB - isEnrolledA;
+  });
+
   if (loading) return <div>Loading courses...</div>;
-  if (!user) return <div>Please log in to view courses.</div>;
+  if (!user) return <div>Please log in.</div>;
 
   return (
     <div className="course-page">
@@ -154,185 +240,274 @@ function CoursePage() {
         })}
       </div>
 
-{isModalOpen && selectedCourse && ( // COURSE DETAILS MODAL
-  <div className="modal-overlay">
-    <div className="course-modal-box">
-      <div className="course-modal-header"> 
-        <div className="course-title-row">
-          <h2>{selectedCourse.title}</h2>
+      {isModalOpen && selectedCourse && (
+        <div className="modal-overlay">
+          <div className="course-modal-box">
+            {/* HEADER */}
+            <div className="course-modal-header">
+              <div className="course-title-row">
+                <h2>{selectedCourse.title}</h2>
+                {selectedCourse.enrolledStudents?.includes(user.uid) && (
+                  <span
+                    className="enrolled-badge"
+                    style={{
+                      background: progress.isCompleted ? "#f1c40f" : "#4cd137",
+                      color: progress.isCompleted ? "black" : "white",
+                    }}
+                  >
+                    {progress.isCompleted ? "✓ COMPLETED" : "✓ ENROLLED"}
+                  </span>
+                )}
+              </div>
+              <div className="course-instructor">
+                <strong>🧑‍🏫Instructor:</strong> {selectedCourse.instructorName}
+              </div>
+              <div className="course-desc">{selectedCourse.description}</div>
+            </div>
 
-          {selectedCourse.enrolledStudents?.includes(user.uid) && ( 
-            <span className="enrolled-badge">✓ ENROLLED</span>
-          )}
-        </div>
+            {/* TABS */}
+            <div className="tab-navigation">
+              <button
+                className={`tab-btn ${
+                  activeTab === "materials" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("materials")}
+              >
+                📚Course Materials
+              </button>
+              <button
+                className={`tab-btn ${
+                  activeTab === "assessments" ? "active" : ""
+                }`}
+                onClick={() => setActiveTab("assessments")}
+              >
+                📖Assessments
+              </button>
+              <button
+                className={`tab-btn ${activeTab === "reviews" ? "active" : ""}`}
+                onClick={() => setActiveTab("reviews")}
+              >
+                ⭐Reviews
+              </button>
+            </div>
 
-        <div className="course-instructor">
-          <strong>🧑‍🏫Instructor:</strong> {selectedCourse.instructorName}
-        </div>
-
-        <div className="course-desc">
-          {selectedCourse.description}
-        </div>
-      </div>
-
-      <div className="tab-navigation">
-        <button
-          className={`tab-btn ${activeTab === "materials" ? "active" : ""}`}
-          onClick={() => setActiveTab("materials")}
-        >
-          Course Materials
-        </button>
-
-        <button
-          className={`tab-btn ${activeTab === "assessments" ? "active" : ""}`}
-          onClick={() => setActiveTab("assessments")}
-        >
-          Assessments
-        </button>
-
-        <button
-          className={`tab-btn ${activeTab === "reviews" ? "active" : ""}`}
-          onClick={() => setActiveTab("reviews")}
-        >
-          Reviews
-        </button>
-      </div>
-
-      <div className="course-modal-content">
-
-        {activeTab === "reviews" && ( // REVIEWS TAB
-          <>
-            <h3>Reviews</h3>
-
-            <div className="reviews-scroll">
-              {selectedCourse.reviews && selectedCourse.reviews.length > 0 ? (
-                selectedCourse.reviews.map((rev, idx) => (
-                  <div key={idx} className="review-card">
-                    <strong>{rev.rating} ⭐</strong> – {rev.comment}
-
-                    <div style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>
-                      {new Date(rev.date).toLocaleDateString()}
-                    </div>
+            {/* CONTENT */}
+            <div className="course-modal-content">
+              {/* === REVIEWS TAB === */}
+              {activeTab === "reviews" && (
+                <>
+                  <h3>Reviews</h3>
+                  <div className="reviews-scroll">
+                    {selectedCourse.reviews &&
+                    selectedCourse.reviews.length > 0 ? (
+                      selectedCourse.reviews.map((rev, idx) => (
+                        <div key={idx} className="review-card">
+                          <strong>{rev.rating} ⭐</strong> – {rev.description}
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#888",
+                              marginTop: "4px",
+                            }}
+                          >
+                            - {rev.studentName}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="locked-text">No reviews yet.</p>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="locked-text">No reviews yet.</p>
+
+                  {/* REVIEW FORM (Locked/Unlocked) */}
+                  {selectedCourse.enrolledStudents?.includes(user.uid) && (
+                    <div
+                      style={{
+                        marginTop: "20px",
+                        padding: "15px",
+                        background: "#f8f9fa",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      {progress.isCompleted ? (
+                        <>
+                          <h4>Write a Review</h4>
+                          <select
+                            value={reviewForm.rating}
+                            onChange={(e) =>
+                              setReviewForm({
+                                ...reviewForm,
+                                rating: e.target.value,
+                              })
+                            }
+                            style={{ marginBottom: "10px" }}
+                          >
+                            {[5, 4, 3, 2, 1].map((n) => (
+                              <option key={n} value={n}>
+                                {n} Stars
+                              </option>
+                            ))}
+                          </select>
+                          <textarea
+                            style={{ width: "100%" }}
+                            placeholder="Review..."
+                            value={reviewForm.description}
+                            onChange={(e) =>
+                              setReviewForm({
+                                ...reviewForm,
+                                description: e.target.value,
+                              })
+                            }
+                          />
+                          <button
+                            className="modal-btn"
+                            onClick={handleReviewSubmit}
+                            disabled={reviewSubmitting}
+                          >
+                            Submit
+                          </button>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: "center", color: "#7f8c8d" }}>
+                          <span style={{ fontSize: "20px" }}>🔒</span>
+                          <p>
+                            <strong>
+                              Complete all materials to unlock reviews.
+                            </strong>
+                          </p>
+                          <p style={{ fontSize: "12px" }}>
+                            You have viewed {progress.viewedItems.length} of{" "}
+                            {selectedCourse.content?.length || 0} items.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* === MATERIALS TAB === */}
+              {activeTab === "materials" && (
+                <>
+                  <h3>Course Materials</h3>
+                  {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+                    selectedCourse.content &&
+                    selectedCourse.content.length > 0 ? (
+                      <div className="file-list student-file-list">
+                        {selectedCourse.content.map((file) => {
+                          const isViewed = progress.viewedItems.includes(
+                            file.id
+                          );
+                          return (
+                            <div
+                              key={file.id}
+                              className="file-item"
+                              style={{
+                                borderLeft: isViewed
+                                  ? "5px solid #4cd137"
+                                  : "1px solid #ddd",
+                              }}
+                            >
+                              {file.type === "quiz" ? (
+                                <div>
+                                  <p>{file.title} (Quiz)</p>
+                                  <button
+                                    onClick={() =>
+                                      handleContentClick(file.id, "quiz")
+                                    }
+                                  >
+                                    Take Assessment
+                                  </button>
+                                </div>
+                              ) : (
+                                <div
+                                  onClick={() =>
+                                    handleContentClick(
+                                      file.id,
+                                      "file",
+                                      file.fileUrl
+                                    )
+                                  }
+                                  style={{
+                                    cursor: "pointer",
+                                    color: "#0984e3",
+                                    textDecoration: "underline",
+                                  }}
+                                >
+                                  {file.title} {isViewed && "✅"}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="locked-text">No materials uploaded yet.</p>
+                    )
+                  ) : (
+                    <p className="locked-text">
+                      Enroll to unlock course materials.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {/* === ASSESSMENTS TAB === */}
+              {activeTab === "assessments" && (
+                <>
+                  <h3>Assessments</h3>
+                  {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+                    <div className="file-list student-file-list">
+                      {selectedCourse.content
+                        ?.filter((f) => f.type === "quiz" || f.type === "test")
+                        .map((file) => (
+                          <div key={file.id} className="file-item">
+                            <p>{file.title}</p>
+                            <button
+                              onClick={() =>
+                                handleContentClick(file.id, "quiz")
+                              }
+                            >
+                              Start
+                            </button>
+                          </div>
+                        ))}
+                      {!selectedCourse.content?.some(
+                        (f) => f.type === "quiz" || f.type === "test"
+                      ) && <p>No assessments in this course.</p>}
+                    </div>
+                  ) : (
+                    <p className="locked-text">Enroll to unlock assessments.</p>
+                  )}
+                </>
               )}
             </div>
-          </>
-        )}
 
-        {activeTab === "materials" && ( // MATERIALS TAB
-          <>
-            <h3>Course Materials</h3>
-
-            {selectedCourse.enrolledStudents?.includes(user.uid) ? (
-              (() => {
-                // Filter out assessments - only show documents/files
-                const materials = selectedCourse.content?.filter(
-                  (file) => file.type !== "quiz" && file.type !== "test"
-                ) || [];
-                
-                return materials.length > 0 ? (
-                  <div className="file-list student-file-list">
-                    {materials.map((file) => (
-                      <div key={file.id} className="file-item">
-                        <a href={file.fileUrl} target="_blank" rel="noreferrer">
-                          {file.title}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="locked-text">No materials uploaded yet.</p>
-                );
-              })()
-            ) : (
-              <p className="locked-text">
-                Enroll to unlock course materials.
-              </p>
-            )}
-          </>
-        )}
-
-        {activeTab === "assessments" && ( // ASSESSMENTS TAB(only for enrolled students)
-          <>
-            <h3>Assessments</h3>
-
-            {selectedCourse.enrolledStudents?.includes(user.uid) ? (
-              (() => {
-                // Filter only assessments (quiz and test)
-                const assessments = selectedCourse.content?.filter(
-                  (file) => file.type === "quiz" || file.type === "test"
-                ) || [];
-                
-                return assessments.length > 0 ? (
-                  <div className="file-list student-file-list">
-                    {assessments.map((assessment) => (
-                      <div key={assessment.id} className="file-item" style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        padding: "12px 0",
-                        borderBottom: "1px solid #eee"
-                      }}>
-                        <span>{assessment.title}</span>
-                        <button 
-                          onClick={() => navigate(`/student/course/assessment/${assessment.id}`)}
-                          style={{
-                            padding: "6px 12px",
-                            fontSize: "13px",
-                            background: "#000",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            marginLeft: "auto"
-                          }}
-                        >
-                          Take Assessment
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="locked-text">No assessments available yet.</p>
-                );
-              })()
-            ) : (
-              <p className="locked-text">
-                Enroll to unlock assessments.
-              </p>
-            )}
-          </>
-        )}
-
-      </div>
-
-      {/*FOOTER (Actions like Enroll / Close)*/}
-      <div className="course-modal-footer">
-        {selectedCourse.enrolledStudents?.includes(user.uid) ? (
-          <button
-            className="modal-btn"
-            disabled
-            style={{ background: "#4cd137", cursor: "default" }}
-          >
-            Already Enrolled
-          </button>
-        ) : (
-          <button className="modal-btn" onClick={handleEnroll}>
-            Enroll Now
-          </button>
-        )}
-
-        <button className="text-btn" onClick={() => setIsModalOpen(false)}>
-          Close
-        </button>
-      </div>
-
-    </div>
-  </div>
-)}
+            {/* FOOTER */}
+            <div className="course-modal-footer">
+              {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+                <button
+                  className="modal-btn"
+                  disabled
+                  style={{ background: "#4cd137", cursor: "default" }}
+                >
+                  Already Enrolled
+                </button>
+              ) : (
+                <button className="modal-btn" onClick={handleEnroll}>
+                  Enroll Now
+                </button>
+              )}
+              <button
+                className="text-btn"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

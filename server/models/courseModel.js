@@ -1,5 +1,6 @@
 // to handle course related crud database operations e.g create, read, update, delete
 const db = require("../config/db");
+const reviewModel = require("./reviewModel");
 
 class CourseModel {
   constructor() {
