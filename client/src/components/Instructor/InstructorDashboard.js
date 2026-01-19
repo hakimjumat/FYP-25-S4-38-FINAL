@@ -141,12 +141,24 @@ export default function InstructorDashboard({ profile }) {
                     <tr key={c.id}>
                       <td className="course-name">{c.title}</td>
                       <td>{c.category || "—"}</td>
+                      {/* Display Individual Course Rating & Count */}
                       <td>
-                        <span className="rating-badge">
-                          {c.averageRating
-                            ? Number(c.averageRating).toFixed(1)
-                            : "—"}
-                        </span>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                          }}
+                        >
+                          <span
+                            style={{ fontWeight: "bold", color: "#2d3436" }}
+                          >
+                            ⭐ {c.rating ? Number(c.rating).toFixed(1) : "0.0"}
+                          </span>
+                          <span style={{ fontSize: "12px", color: "#636e72" }}>
+                            ({c.ratingCount || 0})
+                          </span>
+                        </div>
                       </td>
                       <td>
                         {Array.isArray(c.enrolledStudents)

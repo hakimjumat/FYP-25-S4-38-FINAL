@@ -9,7 +9,105 @@ const internshipModel = require("../models/internshipModel");
 const assessmentModel = require("../models/assessmentModel");
 const gradeModel = require("../models/gradeModel");
 
+// NEW for reviews
+const reviewModel = require("../models/reviewModel.js");
+
 class StudentController {
+  // New method to get course progress (content viewed or not)
+
+  // [NEW] Get Course Progress (Viewed vs Total)
+  async getCourseProgress(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId } = req.params;
+
+      // 1. Get Viewed Items
+      const viewedItems = await gradeModel.getProgress(uid, courseId);
+
+      // 2. Get Total Content
+      const course = await courseModel.getCourseById(courseId);
+      if (!course) return res.status(404).json({ message: "Course not found" });
+
+      const totalItems = course.content ? course.content.length : 0;
+      const isCompleted = viewedItems.length >= totalItems && totalItems > 0;
+
+      res.status(200).json({
+        success: true,
+        data: { viewedItems, totalItems, isCompleted },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // [NEW] Mark Content as Viewed
+  async markContentAsViewed(req, res, next) {
+    try {
+      const uid = req.user.uid;
+      const { courseId, contentId } = req.body;
+
+      // Saves to 'grades' collection
+      await gradeModel.markItemViewed(uid, courseId, contentId);
+
+      res.status(200).json({ success: true, message: "Progress saved" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // [UPDATED] Submit Review 
+  async submitCourseReview(req, res, next) {
+    try {
+      const { courseId, review_rating, review_description } = req.body;
+      const studentId = req.user.uid;
+
+      // 1. STRICT COMPLETION CHECK
+      const viewedItems = await gradeModel.getProgress(studentId, courseId);
+      const course = await courseModel.getCourseById(courseId);
+      const totalItems = course.content ? course.content.length : 0;
+
+      if (viewedItems.length < totalItems) {
+        return res.status(403).json({ 
+          success: false, 
+          message: "Locked: You must complete all course materials before reviewing." 
+        });
+      }
+
+      // 2. Validate Inputs
+      if (!review_rating || !review_description) {
+         return res.status(400).json({ success: false, message: "Rating and description required" });
+      }
+
+      // 3. Duplicate Check
+      const alreadyReviewed = await reviewModel.hasStudentReviewed(courseId, studentId);
+      if (alreadyReviewed) return res.status(400).json({ success: false, message: "You have already reviewed this course." });
+
+      // 4. Save Review
+      const studentProfile = await userModel.getUserById(studentId);
+      const studentName = studentProfile ? `${studentProfile.firstName} ${studentProfile.lastName}` : "Student";
+
+      await reviewModel.addReview({
+        courseId,
+        studentId,
+        studentName,
+        rating: Number(review_rating),
+        description: review_description
+      });
+
+      // 5. Update Course Rating Stats
+      const currentRating = course.rating || 0;
+      const currentCount = course.ratingCount || 0;
+      const newCount = currentCount + 1;
+      const newAverage = ((currentRating * currentCount) + Number(review_rating)) / newCount;
+
+      await courseModel.updateCourse(courseId, { rating: newAverage, ratingCount: newCount });
+
+      res.status(200).json({ success: true, message: "Review submitted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Get student profile along with gamification data
   async getProfile(req, res, next) {
     try {
@@ -60,14 +158,14 @@ class StudentController {
     }
   }
 
-  async getAllInternships(req, res, next){
-    try{
+  async getAllInternships(req, res, next) {
+    try {
       const internships = await internshipModel.getAllInternships();
       res.status(200).json({
         success: true,
         data: internships,
       });
-    } catch(error){
+    } catch (error) {
       next(error);
     }
   }
@@ -98,7 +196,7 @@ class StudentController {
       }
 
       await courseModel.enrollStudent(courseId, uid);
-      await gradeModel.createCourseGrade(uid,courseId);
+      await gradeModel.createCourseGrade(uid, courseId);
       res.status(200).json({
         success: true,
         message: "Enrolled successfully",
@@ -228,12 +326,12 @@ class StudentController {
     }
   }
 
-  async updateIncentiveTransactionHistory(req, res, next){
+  async updateIncentiveTransactionHistory(req, res, next) {
     try {
       console.log("Trying to update transaction History");
       const uid = req.user.uid;
-      const {rewardID} = req.body;
-      
+      const { rewardID } = req.body;
+
       console.log(rewardID);
 
       if (!rewardID) {
@@ -254,9 +352,9 @@ class StudentController {
     }
   }
 
-  async submitAttempt(req, res, next){
-    try{
-      console.log("Tyring to submit assessment attempt.")
+  async submitAttempt(req, res, next) {
+    try {
+      console.log("Tyring to submit assessment attempt.");
       const uid = req.user.uid;
       const courseid = req.body.CID;
       const assID = req.body.AID;
@@ -274,6 +372,5 @@ class StudentController {
       next(error);
     }
   }
-
 }
 module.exports = new StudentController();

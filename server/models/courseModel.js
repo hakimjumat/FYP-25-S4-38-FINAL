@@ -53,18 +53,6 @@ class CourseModel {
     }
   }
 
-  async getCoursesByInstructor(instructorId) {
-    try {
-      const snapshot = await this.collection
-        .where("instructorId", "==", instructorId)
-        .get();
-      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    } catch (error) {
-      throw new Error(`Error fetching courses: ${error.message}`);
-    }
-  }
-
-  // new methods 121225
   async updateCourse(courseId, updates) {
     try {
       await this.collection.doc(courseId).update({
@@ -79,7 +67,6 @@ class CourseModel {
 
   async deleteCourse(courseId) {
     try {
-      // in real app, we should also delete from firestore directly to save space, for now we just delete the record
       await this.collection.doc(courseId).delete();
       return { success: true };
     } catch (error) {
@@ -110,13 +97,42 @@ class CourseModel {
     }
   }
 
-  // New: Get all courses for the Student Course Page
+  // UPDATED: Get all courses for the Student Course Page including reviews
   async getAllCourses() {
     try {
       const snapshot = await this.collection.get();
-      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const courses = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Attach reviews
+      for (const course of courses) {
+        course.reviews = await reviewModel.getReviewsByCourseId(course.id);
+      }
+      return courses;
     } catch (error) {
-      throw new Error(`Error fetching all courses: ${error.message}`);
+      throw new Error(error.message);
+    }
+  }
+
+  // [UPDATED] Attach reviews for Instructor Dashboard
+  async getCoursesByInstructor(instructorId) {
+    try {
+      const snapshot = await this.collection
+        .where("instructorId", "==", instructorId)
+        .get();
+      const courses = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      for (const course of courses) {
+        course.reviews = await reviewModel.getReviewsByCourseId(course.id);
+      }
+      return courses;
+    } catch (error) {
+      throw new Error(error.message);
     }
   }
 
@@ -143,14 +159,16 @@ class CourseModel {
     }
   }
 
-  // New: Get specific course details (helper)
+  // UPDATED: Get specific course details (helper), also endsures reviews are attached
   async getCourseById(courseId) {
     try {
       const doc = await this.collection.doc(courseId).get();
       if (!doc.exists) return null;
-      return { id: doc.id, ...doc.data() };
+      const data = doc.data();
+      data.reviews = await reviewModel.getReviewsByCourseId(courseId); // Attach here too
+      return { id: doc.id, ...data };
     } catch (error) {
-      throw new Error(`Error fetching course: ${error.message}`);
+      throw new Error(error.message);
     }
   }
 }

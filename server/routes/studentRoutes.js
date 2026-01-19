@@ -37,9 +37,22 @@ router.post("/enroll", studentController.enrollCourse);
 // GET /api/students/getallcourseassessments - Get all assesment
 router.get("/getcourseassessment", studentController.getAllAssessment);
 
-router.get("/internships", studentController.getAllInternships)
+// [NEW] Post a review
+// POST /api/students/review - Submit course review
+router.post("/review", studentController.submitCourseReview);
 
-router.post("/updateTransactionHistory", studentController.updateIncentiveTransactionHistory);
+// GET /api/students/course-progress/:courseId - Get course progress
+router.get("/course-progress/:courseId", studentController.getCourseProgress);
+
+// POST /api/students/mark-viewed - Mark content as viewed
+router.post("/mark-viewed", studentController.markContentAsViewed);
+
+router.get("/internships", studentController.getAllInternships);
+
+router.post(
+  "/updateTransactionHistory",
+  studentController.updateIncentiveTransactionHistory
+);
 
 router.post("/submitAssessmentAttempt", studentController.submitAttempt);
 

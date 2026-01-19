@@ -589,6 +589,23 @@ function CourseEditorPage() {
                       setFormData({ ...formData, description: e.target.value })
                     }
                   />
+
+                  <select
+                    className="modal-input"
+                    value={formData.category}
+                    onChange={(e) =>
+                      setFormData({ ...formData, category: e.target.value })
+                    }
+                  >
+                    <option value="English">English</option>
+                    <option value="Math">Math</option>
+                    <option value="Science">Science</option>
+                    <option value="IT">IT</option>
+                    <option value="CareerDevelopment">
+                      Career Development
+                    </option>
+                  </select>
+
                   <button
                     type="submit"
                     className="modal-btn"
