@@ -8,6 +8,7 @@ const instructorRoutes = require("./instructorRoutes");
 const internshipRoutes = require("./internshipRoutes");
 // const courseRoutes = require("./courseRoutes");
 const authRoutes = require("./authRoutes");
+const messagesModel = require("./messageRoutes");
 
 // Mount routes
 router.use("/students", studentRoutes);
@@ -16,6 +17,7 @@ router.use("/auth", authRoutes);
 router.use("/instructors", instructorRoutes);
 router.use("/admin", adminRoutes);
 router.use("/internships", internshipRoutes);
+router.use("/messages", messagesModel)
 
 // Health check route
 router.get("/status", (req, res) => {
