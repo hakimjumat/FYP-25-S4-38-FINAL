@@ -8,6 +8,7 @@ const courseModel = require("../models/courseModel");
 const internshipModel = require("../models/internshipModel");
 const assessmentModel = require("../models/assessmentModel");
 const gradeModel = require("../models/gradeModel");
+const testAttemptModel = require("../models/testAttemptModel.js")
 
 // NEW for reviews
 const reviewModel = require("../models/reviewModel.js");
@@ -367,6 +368,27 @@ class StudentController {
       res.status(200).json({
         success: true,
         message: "Successfully submitted attempt.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async submitTestAttempt(req, res, next) {
+    try {
+      console.log("Tyring to submit test attempt.");
+      const uid = req.user.uid;
+      const courseid = req.body.CID;
+      const assID = req.body.AID;
+      const datatobesent = req.body.datatobesent;
+
+      console.log(JSON.stringify(req.body));
+
+      await testAttemptModel.submitTestData(uid, assID, courseid, datatobesent);
+
+      res.status(200).json({
+        success: true,
+        message: "Successfully submitted test attempt.",
       });
     } catch (error) {
       next(error);

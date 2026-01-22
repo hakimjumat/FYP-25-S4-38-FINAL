@@ -55,5 +55,6 @@ router.post(
 );
 
 router.post("/submitAssessmentAttempt", studentController.submitAttempt);
+router.post("/submitTestAttempt", studentController.submitTestAttempt);
 
 module.exports = router;

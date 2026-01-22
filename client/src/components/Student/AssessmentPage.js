@@ -37,9 +37,16 @@ function AssessmentPage () {
 
     const [markedAlr, setMarkedAlr] = useState(false);
     const [Requiremarking, setRequiremarking] = useState(false);
+    const [submitTest, setsubmitTest] = useState(false);
+
+    const [sendtesttodb, setSendTestToDB] = useState(false);
 
     const handleRadioChange = (value) => {
         setSelectedValue(value);
+    };
+
+    const handleTestBoxChange = event => {
+        setSelectedValue(event.target.value);
     };
 
     const goBackToCourse = () => {
@@ -132,9 +139,13 @@ function AssessmentPage () {
             setUserAns(z);
             //userAnswerArray.push(getAnswer());
             let aa = [];
-            if(elapsedtimeperQn.length>0)
+            let gh = eTime;
+            if(elapsedtimeperQn.length>0){
                 aa = elapsedtimeperQn;
-            aa.push(eTime);
+                for(let x = 0; x < elapsedtimeperQn.length; x++)
+                    gh -= aa[x];
+            }
+            aa.push(gh);
             setETQ(aa);
             elapsedtime = 0;
         }
@@ -181,6 +192,33 @@ function AssessmentPage () {
             }
     }
 
+    const sendtestattempttodb = async () => {
+        console.log("You should only see this once.");
+        setSendTestToDB(true);
+        try{
+            console.log(JSON.stringify(wholeAssignment.courseId));
+            console.log(JSON.stringify(assessmentId));
+
+            const res = await authFetch("http://localhost:5000/api/students/submitTestAttempt/",
+                {method:"POST", body:JSON.stringify({
+                    CID: wholeAssignment.courseId,
+                    AID: assessmentId,
+                    scoreData: attemptData.score,
+                    timeData: attemptData.timeTaken,
+                    datatobesent: attemptData
+                })}, user
+            )
+
+            if(res.success){
+                    // yay
+                    console.log("Sent to DB!");
+                }
+        }
+        catch(error){
+
+        }
+    }
+
     const submitAss = async () => {
         let x = userAnswerArray.length;
         if(x === questionIndex){
@@ -193,9 +231,13 @@ function AssessmentPage () {
             setUserAns(z);
 
             let aa = [];
-            if(elapsedtimeperQn.length>0)
+            let gh = eTime;
+            if(elapsedtimeperQn.length>0){
                 aa = elapsedtimeperQn;
-            aa.push(eTime);
+                for(let x = 0; x < elapsedtimeperQn.length; x++)
+                    gh -= aa[x];
+            }
+            aa.push(gh);
             setETQ(aa);
             elapsedtime = 0;
             setSelectedValue("");
@@ -211,6 +253,9 @@ function AssessmentPage () {
         }
         else{
             //send to db
+            formatDataForTest();
+            setsubmitTest(true);
+            clearInterval(timerInterval);
         }
     }
 
@@ -218,7 +263,14 @@ function AssessmentPage () {
         return selectedValue;
     }
 
-    
+    function formatDataForTest(){
+        for(let i = 0; i < userAnswerArray.length; i++)
+        {
+            let singleQnData = {qId: i, timeSpent: elapsedtimeperQn[i], selected: userAnswerArray[i]}
+            qngradeData.push(singleQnData);
+        }
+        setAttemptData({assessmentId: assessmentId,score: 0, timeTaken: eTotalTime, answers: qngradeData})
+    }
 
     function markAssessment(){
         for(let i = 0; i < userAnswerArray.length; i++)
@@ -272,6 +324,13 @@ function AssessmentPage () {
         formatReview();
         setEnd(true);
         setMarkedAlr(true);
+    }
+
+    if(submitTest === true && sendtesttodb === false){
+        //send to db
+        sendtestattempttodb();
+        setEnd(true);
+        //setMarkedAlr(true);
     }
 
     if (loading) return <div>Loading assessment...</div>;
@@ -337,7 +396,7 @@ function AssessmentPage () {
                                         <div>
                                             <p>{questionList[questionIndex].text}</p>
                                             <label>
-                                                Answer: <input name="short_ans_qn" />
+                                                Answer: <input name="short_ans_qn" onChange={handleTestBoxChange}/>
                                             </label>
                                         </div>
                                     )
