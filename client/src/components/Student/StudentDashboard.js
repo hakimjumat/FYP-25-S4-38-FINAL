@@ -78,7 +78,6 @@ export default function StudentDashboard({ profile, gamification }) {
       boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
       transition: 'transform 0.3s ease, box-shadow 0.3s ease',
       cursor: 'default',
-      animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
       textAlign: 'center'
     }}>
       <h3 style={{
@@ -126,17 +125,6 @@ export default function StudentDashboard({ profile, gamification }) {
   return (
     <div className="student-dashboard">
       <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
         .stat-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
@@ -274,7 +262,6 @@ export default function StudentDashboard({ profile, gamification }) {
 
               return (
                 <div key={course.id} className="course-card" style={{
-                  animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
                 }}>
                   <div
                     className="course-card-header"
@@ -379,7 +366,6 @@ export default function StudentDashboard({ profile, gamification }) {
 
                 return (
                   <div key={index} className="badge-item" style={{
-                    animation: `fadeInUp 0.5s ease-out ${index * 0.05}s both`
                   }}>
                     <div
                       className="badge-icon-wrapper"
