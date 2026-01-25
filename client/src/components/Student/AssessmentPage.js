@@ -33,6 +33,7 @@ function AssessmentPage() {
   const [elapsedtimeperQn, setETQ] = useState([]);
 
   const qngradeData = [];
+  const [dataarr, setDA] = useState([]);
 
   const [selectedValue, setSelectedValue] = useState("");
 
@@ -200,7 +201,7 @@ function AssessmentPage() {
             CID: wholeAssignment.courseId,
             AID: assessmentId,
             timeData: eTotalTime,
-            qnData: qngradeData,
+            qnData: attemptData,
           }),
         },
         user
@@ -252,6 +253,7 @@ function AssessmentPage() {
       };
       qngradeData.push(singleQnData);
     }
+    setAttemptData({assessmentId: assessmentId,score: 0, timeTaken: eTotalTime, answers: qngradeData})
   }
 
   function markAssessment() {

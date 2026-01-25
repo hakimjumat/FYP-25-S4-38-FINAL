@@ -380,11 +380,11 @@ class StudentController {
       const uid = req.user.uid;
       const courseid = req.body.CID;
       const assID = req.body.AID;
-      const datatobesent = req.body.datatobesent;
+      const qnData = req.body.qnData;
 
       console.log(JSON.stringify(req.body));
 
-      await testAttemptModel.submitTestData(uid, assID, courseid, datatobesent);
+      await testAttemptModel.submitTestData(uid, assID, courseid, qnData);
 
       res.status(200).json({
         success: true,
