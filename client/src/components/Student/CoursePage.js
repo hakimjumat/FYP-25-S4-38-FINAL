@@ -474,6 +474,20 @@ function CoursePage() {
                             >
                               Start
                             </button>
+                            {/* 2. NEW: AI Analysis Button */}
+                          <button 
+                            onClick={() => navigate(`/analytics/${selectedCourse.id}/${file.id}`)}
+                            style={{ 
+                              backgroundColor: '#6c5ce7', 
+                              color: 'white',
+                              border: 'none',
+                              padding: '5px 10px',
+                              borderRadius: '4px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            📊 Analyze Progress
+                          </button>
                           </div>
                         ))}
                       {!selectedCourse.content?.some(
