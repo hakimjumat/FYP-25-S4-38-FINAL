@@ -9,6 +9,10 @@ const internshipRoutes = require("./internshipRoutes");
 // const courseRoutes = require("./courseRoutes");
 const authRoutes = require("./authRoutes");
 const messagesModel = require("./messageRoutes");
+const analyticsRoutes = require("./analyticsRoutes");
+
+// Mount analytics routes
+router.use("/analytics", analyticsRoutes);
 
 // Mount routes
 router.use("/students", studentRoutes);

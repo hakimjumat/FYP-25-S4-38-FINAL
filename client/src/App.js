@@ -27,6 +27,7 @@ import AssessmentPage from "./components/Student/AssessmentPage";
 import CreateUserPage from "./components/Admin/CreateUserPage";
 import ViewAccountPage from "./components/Admin/ViewAccountPage";
 import TestGradingPage from "./components/Instructor/TestGradingPage";
+import RiskAnalyticsPage from "./components/Student/RiskAnalyticsPage";
 
 function App() {
   return (
@@ -60,7 +61,7 @@ function App() {
                 element={<InternshipPostingPage />}
               />
 
-
+              <Route path="/analytics/:courseId/:assessmentId" element={<RiskAnalyticsPage />} />
 
               <Route path="/RewardStorePage" element={<RewardsPage />} />
 
