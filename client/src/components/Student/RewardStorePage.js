@@ -187,7 +187,7 @@ function RewardStorePage() {
     <div className="reward-store-page">
       <div className="reward-store-header">
         <div className="reward-header-content">
-          <h1>🎁 Rewards Store</h1>
+          <h1>Rewards Store</h1>
           <p>Redeem your hard-earned points for exciting prizes!</p>
         </div>
 

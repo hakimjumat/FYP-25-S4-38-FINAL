@@ -260,7 +260,7 @@ function CoursePage() {
                 )}
               </div>
               <div className="course-instructor">
-                <strong>🧑‍🏫Instructor:</strong> {selectedCourse.instructorName}
+                <strong>Instructor:</strong> {selectedCourse.instructorName}
               </div>
               <div className="course-desc">{selectedCourse.description}</div>
             </div>
@@ -273,7 +273,7 @@ function CoursePage() {
                 }`}
                 onClick={() => setActiveTab("materials")}
               >
-                📚Course Materials
+                Course Materials
               </button>
               <button
                 className={`tab-btn ${
@@ -281,13 +281,13 @@ function CoursePage() {
                 }`}
                 onClick={() => setActiveTab("assessments")}
               >
-                📖Assessments
+                Assessments
               </button>
               <button
                 className={`tab-btn ${activeTab === "reviews" ? "active" : ""}`}
                 onClick={() => setActiveTab("reviews")}
               >
-                ⭐Reviews
+                Reviews
               </button>
             </div>
 
