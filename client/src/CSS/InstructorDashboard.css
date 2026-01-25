@@ -55,10 +55,6 @@
   transition: transform 0.2s ease;
 }
 
-.instructor-stat-card:hover {
-  transform: translateY(-3px);
-}
-
 .stat-top {
   display: flex;
   justify-content: space-between;
@@ -174,8 +170,6 @@
 
 .actions-button:hover {
   background-color: rgb(0, 102, 255);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(9, 132, 227, 0.25);
 }
 
 .actions-button:active {
@@ -206,4 +200,3 @@
     align-items: flex-start;
   }
 }
-

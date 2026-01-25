@@ -25,7 +25,7 @@ function InboxPage() {
     const [sendMessage, setSendMessage] = useState(false);
     const [sending, setSending] = useState(false);
 
-    const[allUsers, setAllusers] = useState([])
+    const [allUsers, setAllusers] = useState([])
 
     useEffect(() => {
         if (user){
@@ -41,7 +41,7 @@ function InboxPage() {
                 setAllusers(x.data.users);
             }
         } catch(error){
-            //smth fk up
+            console.error(error);
         }
     }
 
@@ -53,7 +53,7 @@ function InboxPage() {
                 setAllMessages(x.data.msgs);
             }
         } catch(error){
-            //smth fk up
+            console.error(error);
         }finally{
             setIsLoading(false);
         }
@@ -71,31 +71,38 @@ function InboxPage() {
 
     function closeModal(){
         setIsModalOpen(false);
+        setMsgRecipient(null);
+        setSMsgData(null);
+        setBMsgData(null);
     }
 
     const sendMessageToDB = async () =>{
         try{
             await authFetch("http://localhost:5000/api/messages/sendMessage", {method: "POST", body:JSON.stringify(msgData)}, user);
         } catch(error){
-            //smth fk up
+            console.error(error);
         }finally{
             setSending(false);
             setSendMessage(false);
             setIsModalOpen(false);
+            fetchMessages(); // Refresh messages
         }
     }
 
     const handleSubChange = event => {
         setSMsgData(event.target.value);
-        console.log('value is:', event.target.value);
     }
 
     const handleMessageChange = event => {
         setBMsgData(event.target.value);
-        console.log('value is:', event.target.value);
     }
 
     function pulldata(){
+        if (!msgRecipient || !msgSubjectData || !msgBodyData) {
+            alert("Please fill in all fields and select a recipient.");
+            return;
+        }
+        
         let y = new Date()
         let x = {
             sender_user_id: user.uid, 
@@ -106,14 +113,7 @@ function InboxPage() {
             sent_on: y,
         }
         setMsgData(x);
-        setMsgRecipient(null);
         setSendMessage(true);
-    }
-
-    function SelectedRecipient(person){
-        //setMsgRecipient(person)
-        //setActiveModal("writeMessage");
-
     }
 
     if(sendMessage === true && sending === false)
@@ -122,211 +122,225 @@ function InboxPage() {
         sendMessageToDB();
     }
 
+    // Filter messages based on active tab
+    const getFilteredMessages = () => {
+        if (activeTab === "all") {
+            return allMessages;
+        } else if (activeTab === "messages") {
+            return allMessages.filter(msg => msg.sender_user_id !== "SYSTEM_ANNOUNCEMENT");
+        } else if (activeTab === "announcement") {
+            return allMessages.filter(msg => msg.sender_user_id === "SYSTEM_ANNOUNCEMENT");
+        }
+        return [];
+    };
+
+    const filteredMessages = getFilteredMessages();
 
     return (
         <div className="inbox-page">
-            <h2>Inbox</h2>
-            <div className="inbox-tabs">
-                <button
-                    className={activeTab === "all" ? "active" : ""}
-                    onClick={() => setActiveTab("all")}
-                >
-                    All
-                </button>
-                <button
-                    className={activeTab === "messages" ? "active" : ""}
-                    onClick={() => setActiveTab("messages")}
-                >
-                    Messages
-                </button>
-                <button
-                    className={activeTab === "announcement" ? "active" : ""}
-                    onClick={() => setActiveTab("announcement")}
-                >
-                    Announcements
-                </button>
-            </div>
-            <div>
-                <button onClick={openWriteModal}>+ Draft New Message</button>
-            </div>
+            <div className="inbox-container">
+                <div className="inbox-header">
+                    <h1>Inbox</h1>
+                    <button className="compose-btn" onClick={openWriteModal}>
+                        Compose Message
+                    </button>
+                </div>
 
-            <div className="inbox-content">
-                {activeTab === "all" && (
-                    <div>
-                        {
-                            isLoading === true ? (
-                                <p>Loading Messages...</p>
-                            ) : (
-                                <div>
-                                {allMessages.map((message) => {
-                                        return(
-                                            <span>
-                                                <div>
-                                                    {message.subject}
-                                                    <button onClick={() => {setSelectedMessgae(message);setActiveModal("readMessage");setIsModalOpen(true);}}>Read</button>
-                                                </div>
-                                            </span>
-                                        )
-                                    })}
-                                </div>
-                            )
-                        }
-                    </div>
-                    ) }
-                
-                {activeTab === "messages" && <div>
-                    {
-                            isLoading === true ? (
-                                <p>Loading Messages...</p>
-                            ) : (
-                                <div>
-                                {allMessages.map((message) => {
-                                        return(
-                                            <div>
-                                                {
-                                                    message.sender_user_id === "SYSTEM_ANNOUNCEMENT" ? (
-                                                        <div></div>
-                                                    ) : (
-                                                        <span>
-                                                            <div>
-                                                                {message.subject}
-                                                                <button onClick={() => {setSelectedMessgae(message);setActiveModal("readMessage");setIsModalOpen(true);}}>Read</button>
-                                                            </div>
-                                                        </span>
-                                                    )
-                                                }
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )
-                        }
-                    </div>}
-                {activeTab === "announcement" && <div>
-                    {
-                            isLoading === true ? (
-                                <p>Loading Messages...</p>
-                            ) : (
-                                <div>
-                                {allMessages.map((message) => {
-                                        return(
-                                            <div>
-                                                {
-                                                    message.sender_user_id === "SYSTEM_ANNOUNCEMENT" ? (
-                                                        <span>
-                                                            <div>
-                                                                {message.subject}
-                                                                <button onClick={() => {setSelectedMessgae(message);setActiveModal("readMessage");setIsModalOpen(true);}}>Read</button>
-                                                            </div>
-                                                        </span>
-                                                    ) : (
-                                                        <div></div>
-                                                    )
-                                                }
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )
-                        }
-                    </div>}
-            </div>
+                <div className="inbox-tabs">
+                    <button
+                        className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
+                        onClick={() => setActiveTab("all")}
+                    >
+                        All
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === "messages" ? "active" : ""}`}
+                        onClick={() => setActiveTab("messages")}
+                    >
+                        Messages
+                    </button>
+                    <button
+                        className={`tab-btn ${activeTab === "announcement" ? "active" : ""}`}
+                        onClick={() => setActiveTab("announcement")}
+                    >
+                        Announcements
+                    </button>
+                </div>
 
-
-            {
-                isModalOpen === true && activeModal === "writeMessage" && (
-                //structured like an email
-                    <div className="modal-overlay">
-                        <div className="course-modal-box">
-                            {
-                                msgRecipient === null ? (
-                                    <button onClick={() => setActiveModal("selectReciver")}>Select Recipient</button>
-                                ) : (
-                                    <div>
-                                        <p>Recipient: {msgRecipient.displayName}</p>
-                                        <button onClick={() => setMsgRecipient(null)}>Clear Selection</button>
-                                    </div>
-                                )
-                            }
-                            <label>Subject: <input id = "subjectInput" name="SubjectInputBox" onChange={handleSubChange}/></label>
-                            <input id = "bodyInput" name="BodyInputBox" onChange={handleMessageChange}/>
-                            <div className="course-modal-footer">
-                                <button
-                                    className="modal-btn"
-                                    style={{ background: "#4cd137", cursor: "default" }}
-                                    onClick={pulldata}
+                <div className="inbox-content">
+                    {isLoading ? (
+                        <div className="loading-state">
+                            <div className="loading-spinner"></div>
+                            <p>Loading messages...</p>
+                        </div>
+                    ) : filteredMessages.length === 0 ? (
+                        <div className="empty-state">
+                            <h3>No messages yet</h3>
+                            <p>Your inbox is empty</p>
+                        </div>
+                    ) : (
+                        <div className="message-list">
+                            {filteredMessages.map((message, index) => (
+                                <div 
+                                    key={index} 
+                                    className="message-card"
+                                    onClick={() => {
+                                        setSelectedMessgae(message);
+                                        setActiveModal("readMessage");
+                                        setIsModalOpen(true);
+                                    }}
                                 >
-                                    Send
-                                </button>
-                                <button className="text-btn" onClick={closeModal}>
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-            {
-                isModalOpen === true && activeModal === "readMessage" && (
-                //structured like an email
-                    <div className="modal-overlay">
-                        <div className="course-modal-box">
-                            <label>Sender: {selectedMessage.s_name}</label>
-                            <h3>Subject: {selectedMessage.subject}</h3>
-                            <p>{selectedMessage.text}</p>
-                            <div className="course-modal-footer">
-                                <button className="text-btn" onClick={closeModal}>
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            {
-                isModalOpen === true && activeModal === "selectReciver" && (
-                //structured like an email
-                    <div className="modal-overlay">
-                        <div className="course-modal-box">
-                            <div>
-                                Users:
-                            </div>
-                            {
-                                
-                                allUsers.map((person)=>{return(
-                                    <div>
-                                        {
-                                            person.role === "student" && (
-                                                <span>
-                                                    <label>{person.displayName}</label>
-                                                    <button onClick={() => {setMsgRecipient(person);
-                                                                                setActiveModal("writeMessage");
-                                                    }}>Select</button>
-                                                </span>
-                                            )
-                                        }
-                                        {
-                                            person.role === "instructor" && (
-                                                <span>
-                                                    <label>{person.displayName}</label>
-                                                    <button onClick={() => {setMsgRecipient(person);setActiveModal("writeMessage");}}>Select</button>
-                                                </span>
-                                            )
-                                        }
+                                    <div className="message-info">
+                                        <div className="message-header-row">
+                                            <h3 className="message-subject">{message.subject}</h3>
+                                            {message.sender_user_id === "SYSTEM_ANNOUNCEMENT" && (
+                                                <span className="announcement-badge">Announcement</span>
+                                            )}
+                                        </div>
+                                        <p className="message-sender">
+                                            From: {message.s_name || "System"}
+                                        </p>
+                                        <p className="message-preview">
+                                            {message.text ? message.text.substring(0, 80) : ""}
+                                        </p>
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
 
-                                    )}
-                                )
-                            }
+            {isModalOpen && activeModal === "writeMessage" && (
+                <div className="modal-overlay" onClick={closeModal}>
+                    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Compose Message</h2>
+                        </div>
+
+                        <div className="modal-content">
+                            <div className="form-group">
+                                <label>Recipient</label>
+                                {msgRecipient === null ? (
+                                    <button 
+                                        className="select-recipient-btn"
+                                        onClick={() => setActiveModal("selectReciver")}
+                                    >
+                                        Select Recipient
+                                    </button>
+                                ) : (
+                                    <div className="selected-recipient">
+                                        <span>{msgRecipient.displayName}</span>
+                                        <button onClick={() => setMsgRecipient(null)}>✕</button>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="form-group">
+                                <label>Subject</label>
+                                <input 
+                                    type="text"
+                                    className="form-input" 
+                                    placeholder="Enter subject..."
+                                    onChange={handleSubChange}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label>Message</label>
+                                <textarea
+                                    className="form-textarea"
+                                    placeholder="Type your message here..."
+                                    onChange={handleMessageChange}
+                                    rows="8"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={closeModal}>
+                                Cancel
+                            </button>
+                            <button 
+                                className="btn-send"
+                                onClick={pulldata}
+                                disabled={!msgRecipient || !msgSubjectData || !msgBodyData}
+                            >
+                                Send Message
+                            </button>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
+
+            {isModalOpen && activeModal === "readMessage" && selectedMessage && (
+                <div className="modal-overlay" onClick={closeModal}>
+                    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Message</h2>
+                        </div>
+
+                        <div className="modal-content">
+                            <div className="message-detail">
+                                <div className="detail-row">
+                                    <span className="detail-label">From:</span>
+                                    <span className="detail-value">{selectedMessage.s_name || "System"}</span>
+                                </div>
+                                <div className="detail-row">
+                                    <span className="detail-label">Subject:</span>
+                                    <span className="detail-value">{selectedMessage.subject}</span>
+                                </div>
+                                <div className="message-body">
+                                    {selectedMessage.text}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={closeModal}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isModalOpen && activeModal === "selectReciver" && (
+                <div className="modal-overlay" onClick={() => setActiveModal("writeMessage")}>
+                    <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Select Recipient</h2>
+                        </div>
+
+                        <div className="modal-content">
+                            <div className="user-list">
+                                {allUsers.map((person, index) => (
+                                    <div key={index} className="user-card">
+                                        <div className="user-info">
+                                            <div>
+                                                <div className="user-name">{person.displayName}</div>
+                                                <div className="user-role">
+                                                    {person.role === "student" ? "Student" : "Instructor"}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            className="btn-select"
+                                            onClick={() => {
+                                                setMsgRecipient(person);
+                                                setActiveModal("writeMessage");
+                                            }}
+                                        >
+                                            Select
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-
-
-
     );
 }
 

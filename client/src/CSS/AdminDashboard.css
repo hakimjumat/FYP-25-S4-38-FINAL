@@ -57,8 +57,6 @@
 
 .admin-action-btn:hover {
   background-color: rgb(0, 102, 255);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 14px rgba(9, 132, 227, 0.25);
 }
 
 .admin-action-btn:active {
@@ -78,10 +76,6 @@
   padding: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   transition: transform 0.2s ease;
-}
-
-.admin-stat-card:hover {
-  transform: translateY(-3px);
 }
 
 .admin-stat-header {

@@ -53,7 +53,7 @@ export default function StudentDashboard({ profile, gamification }) {
   const courseColors = [
     "#FF6B6B", 
     "#4ECDC4", 
-    "#FFE66D", 
+    "#FFE66D",
     "#A8E6CF", 
     "#FFB347", 
   ];
@@ -69,7 +69,7 @@ export default function StudentDashboard({ profile, gamification }) {
     setIsModalOpen(false);
   };
 
-  const StatCard = ({ value, label, index }) => (
+  const StatCard = ({ value, label }) => (
     <div className="stat-card" style={{
       backgroundColor: 'white',
       color: '#2c3e50',
@@ -126,14 +126,9 @@ export default function StudentDashboard({ profile, gamification }) {
     <div className="student-dashboard">
       <style>{`
         .stat-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
         }
         
         .quick-action-card-hover:hover {
-          transform: translateX(4px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
-          border-color: #d0d0d0 !important;
         }
       `}</style>
 
@@ -162,28 +157,23 @@ export default function StudentDashboard({ profile, gamification }) {
       <div className="stats-grid">
         <StatCard 
           value={currentLevel} 
-          label="Current Level" 
-          index={0}
+          label="Current Level"
         />
         <StatCard 
           value={currentPoints} 
-          label="Total Points" 
-          index={1}
+          label="Total Points"
         />
         <StatCard 
           value={currentStreak} 
-          label="Day Streak" 
-          index={2}
+          label="Day Streak"
         />
         <StatCard 
           value={badgesCount} 
-          label="Badges Earned" 
-          index={3}
+          label="Badges Earned"
         />
         <StatCard 
           value={enrolledCourses.length} 
-          label="Courses Enrolled" 
-          index={4}
+          label="Courses Enrolled"
         />
       </div>
 
@@ -261,8 +251,7 @@ export default function StudentDashboard({ profile, gamification }) {
               const materialsCount = content.length - quizzesCount;
 
               return (
-                <div key={course.id} className="course-card" style={{
-                }}>
+                <div key={course.id} className="course-card">
                   <div
                     className="course-card-header"
                     style={{
@@ -365,8 +354,7 @@ export default function StudentDashboard({ profile, gamification }) {
                 };
 
                 return (
-                  <div key={index} className="badge-item" style={{
-                  }}>
+                  <div key={index} className="badge-item">
                     <div
                       className="badge-icon-wrapper"
                       style={{ 
