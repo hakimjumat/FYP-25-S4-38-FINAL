@@ -5,7 +5,8 @@
 ```
 FYP/
 ├── client/          # React frontend
-├── server/          # Node.js backend
+├── datamining/          # Python datamining service
+├── server/             # Node.js backend
 └── docs/            # Documentation
 ```
 
@@ -14,15 +15,32 @@ FYP/
 ### Prerequisites
 
 - Node.js 18+ and npm
+- Python
 - Firebase account
 
-### Backend Setup
+### Backend Setup (Node.js)
 
 ```bash
 cd server
 npm install
 # Add your serviceAccountKey.json
 npm start
+```
+
+### Backend Setup (Python venv)
+
+```bash
+cd datamining
+# create virtual environment for python
+python3 -m venv venv
+
+# Windows
+venv\Scripts\activate
+# Mac/Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn analytics:app --reload --port 8000
 ```
 
 ### Frontend Setup
