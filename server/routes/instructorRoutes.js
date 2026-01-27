@@ -56,7 +56,7 @@ router.get("/getalltestattempts", instructorController.getAllTestAttempts);
 router.get("/getallAssessments", instructorController.getAllAssessment);
 router.post("/uploadstudentgrade", instructorController.uploadStudentGrade);
 router.delete("/delete-gradeditem/:attemptId", instructorController.deleteGradedAttempt);
-
-
+router.post("/fetchsinglestudentgrade", instructorController.FetchSingleGrade);
+router.post("/updateTotalGrade", instructorController.calculateTotalGrade);
 
 module.exports = router;

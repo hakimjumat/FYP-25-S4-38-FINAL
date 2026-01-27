@@ -147,8 +147,53 @@ function TestGradingPage() {
 
         }
         finally{
+            retreieveStudentOverallGrade();
+        }
+    }
+
+    const retreieveStudentOverallGrade = async () => {
+        let x = null;
+        try{
+            x = await authFetch("http://localhost:5000/api/instructors/fetchsinglestudentgrade",
+                {method: "POST", body:JSON.stringify({
+                sid: testAttemptData.user, 
+                cid: testAttemptData.course,
+            })}, user);
+        }
+        catch(error){
+
+        }
+        finally{
+            CalculateGrade(x.data);
+        }
+    }
+
+    const postnewStudentOverallGrade = async (data) => {
+        try{
+            await authFetch("http://localhost:5000/api/instructors/updateTotalGrade",
+                {method: "POST", body:JSON.stringify({
+                sid: testAttemptData.user, 
+                cid: testAttemptData.course,
+                newTG: data,
+            })}, user);
+        }
+        catch(error){
+
+        }
+        finally{
             delgradeditem();
         }
+    }
+
+    function CalculateGrade(xxx) {
+        let newTotalGrade = 0;
+        let smth = xxx.results;
+        for (let j = 0; j < smth.length; j++) {
+        if (smth[j].weightedGrade !== undefined) {
+          newTotalGrade += smth[j].weightedGrade;
+        }
+      }
+        postnewStudentOverallGrade(newTotalGrade);
     }
 
     const announceNewGrade = async () => {

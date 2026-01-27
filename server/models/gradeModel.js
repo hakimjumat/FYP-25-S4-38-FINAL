@@ -180,5 +180,35 @@ class GradeModel {
       throw new Error(error.message);
     }
   }
+
+  async getSingleStudentGrade(studentId, courseId) {
+    try {
+      const docId = `progress_${studentId}_${courseId}`;
+      const doc = await this.collection.doc(docId).get();
+
+      if (!doc.exists){
+        //error
+      }
+      return doc.data();
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async UpdateSingleStudentGrade(studentId, courseId, newTG) {
+    try {
+      const docId = `progress_${studentId}_${courseId}`;
+      const doc = await this.collection.doc(docId).get();
+
+      await this.collection.doc(docId).update({total_Grade: newTG});
+
+      if (!doc.exists){
+        //error
+      }
+      
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
 }
 module.exports = new GradeModel();

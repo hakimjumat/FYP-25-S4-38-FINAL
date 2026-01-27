@@ -361,6 +361,40 @@ class InstructorController {
       }
     }
 
+    async FetchSingleGrade(req, res, next){
+      try{
+        const studentId = req.body.sid;
+        const courseId = req.body.cid;
+
+        const data = await GradeModel.getSingleStudentGrade(studentId, courseId);
+
+        res.status(200).json({
+          success: true,
+          data: data,
+        });
+      }
+      catch (error) {
+        next(error);
+      }
+    }
+
+    async calculateTotalGrade(req, res, next){
+      try{
+        const studentId = req.body.sid;
+        const courseId = req.body.cid;
+        const newTotalGrade = req.body.newTG;
+
+        await GradeModel.UpdateSingleStudentGrade(studentId, courseId, newTotalGrade);
+
+        res.status(200).json({
+          success: true,
+        });
+      }
+      catch (error) {
+        next(error);
+      }
+    }
+
     async deleteGradedAttempt(req, res, next){
       try {
       const uid = req.user.uid;
@@ -374,6 +408,7 @@ class InstructorController {
       next(error);
     }
     }
+    
 }
 
 module.exports = new InstructorController();
