@@ -126,23 +126,28 @@ function CoursePage() {
     for (let i = 0; i < x.outcome.length; i++) {
       let z = x.outcome[i].results;
       let num = 0;
-      for (let j = 0; j < z.length; j++) {
+      if(z !== undefined)
+      {
+        for (let j = 0; j < z.length; j++) {
         if (z[j].weightedGrade !== undefined) {
           num += z[j].weightedGrade;
         }
       }
-      if (num !== 0) {
-        let name = "";
-        for (let i = 0; i < ppl.length; i++) {
-          if (ppl[i].uid === x.outcome[i].studentId) {
-            name = ppl[i].displayName;
-            break;
+        if (num !== 0) {
+          let name = "";
+          for (let z = 0; z < ppl.length; z++) {
+            if (ppl[z].uid === x.outcome[i].studentId) {
+              name = ppl[z].displayName;
+              break;
+            }
           }
+          formattedgrade.push({ s_name: name, LboardScore: num });
         }
-        formattedgrade.push({ s_name: name, LboardScore: num });
       }
+      
     }
-    setSCG(formattedgrade);
+    let y = formattedgrade.sort((a, b) => b.LboardScore - a.LboardScore);
+    setSCG(y);
   }
 
   const handleEnroll = async () => {
@@ -583,9 +588,11 @@ function CoursePage() {
                 <>
                   <h3>Leaderboard</h3>
                   {selectedCourseGrades.map((leaderboard) => (
-                    <span>
-                      {leaderboard.s_name} Score: {leaderboard.LboardScore}
-                    </span>
+                    <div>
+                      <span>
+                        {leaderboard.s_name} Score: {leaderboard.LboardScore}
+                      </span>
+                    </div>
                   ))}
                 </>
               )}

@@ -11,12 +11,19 @@ function InternshipPostingPage() {
 
   // Form State
   const [showCreate, setShowCreate] = useState(false);
+  const [showAddMoreReqs, setAMR] = useState(false);
+  const [showCourseList, setSCL] = useState(false);
   const [newJob, setNewJob] = useState({
     title: "",
     company: "",
     description: "",
     minScore: 60,
   });
+
+  const[AMRpercent, setAMRper] = useState(0);
+  const[AMRcourse, setAMRCid] = useState(null);
+  const[courselist, setclist] = useState([]);
+  const[AMRlist, setAMRlist] = useState([]);
 
   // 1. Fetch My Postings
   const fetchPostings = async () => {
@@ -32,8 +39,30 @@ function InternshipPostingPage() {
     }
   };
 
+  const getCourseList = async () => {
+    try{
+      const res = await authFetch(
+        "http://localhost:5000/api/internships/getAllCourses",
+        {},
+        user
+      );
+      if(res.success)
+      {
+        console.log("Got courses");
+        let x = [];
+        res.data.forEach(element => {
+          x.push({cid: element.id, c_name: element.title})
+        });
+        setclist(x);
+      }
+    }catch (error) {
+      console.error(error);
+    }
+  }
+
   useEffect(() => {
     fetchPostings();
+    getCourseList();
   }, [user]);
 
   // 2. Create Job
@@ -70,6 +99,40 @@ function InternshipPostingPage() {
     }
   };
 
+  function enableAddAdditionalRequirements(){
+    setAMR(true);
+  }
+
+  function setAMRpercentage (e) {
+    setAMRper(e.target.value)
+  }
+
+  function setAMRCourse (e) {
+    setAMRCid(e)
+  }
+
+  function clearSelectedCourse(){
+    setAMRCid(null);
+  }
+
+  function AddRequirement(){
+    let x = AMRlist;
+    x.push({cid: AMRcourse.cid, c_name: AMRcourse.c_name, percentage: AMRpercent})
+    setAMRlist(x);
+    clearSelectedCourse();
+
+    let y = newJob;
+    y.additionalrequirements = x;
+  }
+
+  function removeEntry(removethis){
+    const updated = AMRlist.filter((_, i) => i !== removethis);
+    setAMRlist(updated);
+    let y = newJob;
+    y.additionalrequirements = updated;
+  }
+  
+
   return (
     <div className="admin-page">
       <div className="admin-container">
@@ -99,6 +162,18 @@ function InternshipPostingPage() {
                 </p>
                 <p>
                   <strong>Requirement:</strong> Min {job.minScore}% Avg Score
+                  {
+                    job.additionalrequirements !== undefined && (
+                      <div>
+                      {
+                        job.additionalrequirements.map((entry) => (
+                          <div>{entry.c_name}: {entry.percentage}</div>
+                        ))
+                      }
+                      </div>
+                    )
+                    
+                  }
                 </p>
                 <button
                   className="admin-btn btn-green"
@@ -145,7 +220,49 @@ function InternshipPostingPage() {
                     setNewJob({ ...newJob, minScore: e.target.value })
                   }
                 />
+                {
+                  AMRlist.length !== 0 && (
+                    <div>
+                    {
+                      AMRlist.map((req, idx) => (
+                        <div>
+                          <span>{idx + 1}: {req.c_name}: {req.percentage} <button onClick={() => removeEntry(idx)}>Remove</button></span>
+                        </div>
+                      ))
+                    }
+                    </div>
+                  )
+                }
+                {
+                  showAddMoreReqs === true && (
+                    <div>
+                      {
+                        AMRcourse === null ? (
+                          <button onClick = {() => setSCL(true)}>Select Course</button>
+                        ) : (
+                          <div>Selected: {AMRcourse.c_name}
+                            <button onClick={clearSelectedCourse}>Clear Selection</button>
+                          </div>
+                        )
+                      }
+                      <label>Minimum Course Score Criteria (%)</label>
+                        <input
+                          type="number"
+                          className="admin-input"
+                          onChange={(setAMRpercentage)}
+                        />
+                        {
+                          AMRcourse !== null && (
+                            <button onClick={AddRequirement}>Add Requirement</button>
+                          )
+                        }
+                    </div>
+                  )
+                }
               </div>
+              <button className="admin-btn btn-green" onClick={enableAddAdditionalRequirements}>
+                Add Additional Requirements
+              </button>
               <button className="admin-btn btn-green" onClick={handleCreate}>
                 Post Job
               </button>
@@ -202,6 +319,24 @@ function InternshipPostingPage() {
                 style={{ marginTop: "20px" }}
                 onClick={() => setViewingPostingId(null)}
               >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* --- COURSE LIST --- */}
+        {showCourseList && (
+          <div className="modal-overlay">
+            <div className="modal-box" style={{ textAlign: "left" }}>
+              <h2>Course List</h2>
+              {
+                courselist.map((c_entry) => (
+                  <div>{c_entry.c_name} <button onClick={() => {setAMRCourse(c_entry);setSCL(false);}}>Select</button></div>
+                )
+                )
+              }
+              <button className="text-btn" onClick={() => setSCL(false)}>
                 Close
               </button>
             </div>

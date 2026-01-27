@@ -11,5 +11,6 @@ router.use(checkRole(["internshipprovider", "admin"]));
 router.post("/create", internshipController.createPosting);
 router.get("/my-postings", internshipController.getMyPostings);
 router.get("/:postingId/candidates", internshipController.getCandidates);
+router.get("/getAllCourses", internshipController.getFullCourseList);
 
 module.exports = router;

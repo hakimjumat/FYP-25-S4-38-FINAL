@@ -291,7 +291,7 @@ function AssessmentPage() {
     setRD(reviewlist);
   }
 
-  if (sendtoDbalr === false && endassessment === true && attemptData) {
+  if (sendtoDbalr === false && endassessment === true && attemptData && submitTest === false) {
     sendtodb(true);
   }
 

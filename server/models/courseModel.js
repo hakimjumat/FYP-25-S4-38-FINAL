@@ -117,6 +117,19 @@ class CourseModel {
     }
   }
 
+  async getAllCoursesforPostings(){
+    try{
+      const snapshot = await this.collection.get();
+      const courses = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      return courses;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
+
   // [UPDATED] Attach reviews for Instructor Dashboard
   async getCoursesByInstructor(instructorId) {
     try {

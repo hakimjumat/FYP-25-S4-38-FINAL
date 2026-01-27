@@ -1,12 +1,13 @@
 const internshipModel = require("../models/internshipModel");
 const gradeModel = require("../models/gradeModel");
 const userModel = require("../models/userModel");
+const courseModel = require("../models/courseModel");
 
 class InternshipController {
   // 1. Create a Job Posting
   async createPosting(req, res, next) {
     try {
-      const { title, company, description, minScore } = req.body;
+      const { title, company, description, minScore, additionalrequirements } = req.body;
       const providerId = req.user.uid;
 
       const posting = await internshipModel.createPosting(providerId, {
@@ -14,6 +15,7 @@ class InternshipController {
         company,
         description,
         minScore: parseInt(minScore) || 0,
+        additionalrequirements,
       });
 
       res.status(201).json({ success: true, data: posting });
@@ -80,6 +82,16 @@ class InternshipController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+
+  async getFullCourseList(req, res, next){
+    try{
+      const list = await courseModel.getAllCoursesforPostings();
+      res.status(200).json({ success: true, data: list });
+    }
+    catch (error) {
+        next(error);
     }
   }
 }
