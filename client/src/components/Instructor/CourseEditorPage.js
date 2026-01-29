@@ -775,6 +775,10 @@ function CourseEditorPage() {
                   </button>
                 </form>
 
+                <button onClick={closeModal} className="text-btn">
+                  Cancel
+                </button>
+
                 <h3 style={{ marginTop: "20px", textAlign: "left" }}>
                   Attached Files
                 </h3>
@@ -1023,18 +1027,60 @@ function CourseEditorPage() {
             )}
             {/* 6. ANNOUNCEMENT*/}
             {modalType === "course_announcement" && (
-              <div>
-                <h2>Make Announcement</h2>
-                <input
-                  id="announcementinput"
-                  onChange={handleAnnouncementTextChange}
-                />
-                <button onClick={forloopAnnouncement}>Send</button>
-                <button onClick={closeModal} className="text-btn">
-                  Cancel
-                </button>
-              </div>
-            )}
+                <div>
+                  <h2 style={{ textAlign: "center", marginBottom: "20px" }}>Make Announcement</h2>
+                  
+                  <div style={{ marginBottom: "20px" }}>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "8px", 
+                      fontWeight: "600",
+                      fontSize: "14px" 
+                    }}>
+                      Announcement Message
+                    </label>
+                    <textarea
+                      id="announcementinput"
+                      onChange={handleAnnouncementTextChange}
+                      placeholder="Type your announcement here..."
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        fontSize: "14px",
+                        minHeight: "120px",
+                        resize: "vertical",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box"
+                      }}
+                    />
+                  </div>
+                  
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button 
+                      onClick={forloopAnnouncement}
+                      className="modal-btn"
+                      style={{ flex: 1 }}
+                    >
+                      Send
+                    </button>
+                    <button 
+                      onClick={closeModal} 
+                      className="text-btn"
+                      style={{
+                        padding: "12px 24px",
+                        border: "1px solid #ddd",
+                        borderRadius: "8px",
+                        backgroundColor: "white",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       )}
