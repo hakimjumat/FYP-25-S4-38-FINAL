@@ -30,6 +30,10 @@ function CoursePage() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [selectedCourseGrades, setSCG] = useState([]);
   const [RawselectedCourseGrades, setRSCG] = useState([]);
+  
+  const [searchVal, setSV] = useState("");
+  const [foundCourse, setFC] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // 1. Fetch Courses
   const fetchCourses = async () => {
@@ -240,12 +244,33 @@ function CoursePage() {
     }
   };
 
+  const updateSearchValue= (event) => {
+    setSV(event.target.value)
+  }
+
   // --- Sort Courses (Enrolled First) ---
   const sortedCourses = [...courses].sort((a, b) => {
     const isEnrolledA = a.enrolledStudents?.includes(user?.uid) ? 1 : 0;
     const isEnrolledB = b.enrolledStudents?.includes(user?.uid) ? 1 : 0;
     return isEnrolledB - isEnrolledA;
   });
+
+  function executeSearch(){
+    setFC([]);
+    setIsSearching(true);
+    courses.forEach(element => {
+      if(element.title=== searchVal){
+        let temp = foundCourse;
+        temp.push(element);
+        setFC(temp);
+      }
+    });
+  }
+
+  function ResetSearch(){
+    setIsSearching(false);
+    setFC([]);
+  }
 
   if (loading) return <div>Loading courses...</div>;
   if (!user) return <div>Please log in.</div>;
@@ -255,92 +280,199 @@ function CoursePage() {
       <h1>Available Courses</h1>
       <p>Explore and enroll in courses to boost your skills.</p>
 
-      <div className="courses-grid">
-        {sortedCourses.map((course, index) => {
-          const isEnrolled = course.enrolledStudents?.includes(user.uid);
-          const isLocked = course.isLocked; //flag from server
-          return (
-            <div
-              key={course.id}
-              className={`course-card ${isLocked ? "locked-course" : ""}`} // Add CSS class for greyscale/opacity
-              onClick={() => openCourseDetails(course)}
-              style={{
-                border: isEnrolled ? "2px solid #4cd137" : "1px solid #ddd",
-                opacity: isLocked ? 0.6 : 1,
-                cursor: isLocked ? "not-allowed" : "pointer",
-                filter: isLocked ? "grayscale(100%)" : "none",
-              }}
-            >
-              <div
-                className="course-card-image"
-                style={{
-                  background: isLocked
-                    ? "#95a5a6"
-                    : courseColors[index % courseColors.length],
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "72px",
-                  fontWeight: "800",
-                  color: "white",
-                  position: "relative",
-                }}
-              >
-                {isLocked ? "🔒" : course.title.charAt(0).toUpperCase()}
+      <div>
+        <input placeholder= {"Search by Name"} onChange={updateSearchValue}/>
+        <button onClick={executeSearch}>Search</button>
+        {
+          isSearching === true && (
+            <button onClick={ResetSearch}>Clear Search</button>
+          )
+        }
+      </div>
 
-                {/* LEVEL BADGE */}
-                <span
+      <div className="courses-grid">
+        {isSearching === false ? (
+            <div>
+            {sortedCourses.map((course, index) => {
+              const isEnrolled = course.enrolledStudents?.includes(user.uid);
+              const isLocked = course.isLocked; //flag from server
+              return (
+                <div
+                  key={course.id}
+                  className={`course-card ${isLocked ? "locked-course" : ""}`} // Add CSS class for greyscale/opacity
+                  onClick={() => openCourseDetails(course)}
                   style={{
-                    position: "absolute",
-                    bottom: "10px",
-                    right: "10px",
-                    fontSize: "14px",
-                    background: "rgba(0,0,0,0.5)",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
+                    border: isEnrolled ? "2px solid #4cd137" : "1px solid #ddd",
+                    opacity: isLocked ? 0.6 : 1,
+                    cursor: isLocked ? "not-allowed" : "pointer",
+                    filter: isLocked ? "grayscale(100%)" : "none",
                   }}
                 >
-                  {course.subjectLevel || "H1"}
-                </span>
-              </div>
-              <div className="course-card-content">
-                {isEnrolled && (
-                  <span
+                  <div
+                    className="course-card-image"
                     style={{
-                      backgroundColor: "#4cd137",
+                      background: isLocked
+                        ? "#95a5a6"
+                        : courseColors[index % courseColors.length],
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "72px",
+                      fontWeight: "800",
                       color: "white",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
+                      position: "relative",
                     }}
                   >
-                    ENROLLED
-                  </span>
-                )}
-                {isLocked && (
-                  <span
-                    style={{
-                      backgroundColor: "#e74c3c",
-                      color: "white",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      marginLeft: isEnrolled ? "5px" : "0",
-                    }}
-                  >
-                    LOCKED
-                  </span>
-                )}
-                <h3>{course.title}</h3>
-                <p style={{ fontSize: "14px", color: "#666" }}>
-                  Instructor: {course.instructorName}
-                </p>
-              </div>
+                    {isLocked ? "🔒" : course.title.charAt(0).toUpperCase()}
+    
+                    {/* LEVEL BADGE */}
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: "10px",
+                        right: "10px",
+                        fontSize: "14px",
+                        background: "rgba(0,0,0,0.5)",
+                        padding: "2px 8px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {course.subjectLevel || "H1"}
+                    </span>
+                  </div>
+                  <div className="course-card-content">
+                    {isEnrolled && (
+                      <span
+                        style={{
+                          backgroundColor: "#4cd137",
+                          color: "white",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ENROLLED
+                      </span>
+                    )}
+                    {isLocked && (
+                      <span
+                        style={{
+                          backgroundColor: "#e74c3c",
+                          color: "white",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          marginLeft: isEnrolled ? "5px" : "0",
+                        }}
+                      >
+                        LOCKED
+                      </span>
+                    )}
+                    <h3>{course.title}</h3>
+                    <p style={{ fontSize: "14px", color: "#666" }}>
+                      Instructor: {course.instructorName}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
             </div>
-          );
-        })}
+          ) : (
+            <div>
+            {
+              <div>
+              {foundCourse.map((course, index) => {
+              const isEnrolled = course.enrolledStudents?.includes(user.uid);
+              const isLocked = course.isLocked; //flag from server
+              return (
+                <div
+                  key={course.id}
+                  className={`course-card ${isLocked ? "locked-course" : ""}`} // Add CSS class for greyscale/opacity
+                  onClick={() => openCourseDetails(course)}
+                  style={{
+                    border: isEnrolled ? "2px solid #4cd137" : "1px solid #ddd",
+                    opacity: isLocked ? 0.6 : 1,
+                    cursor: isLocked ? "not-allowed" : "pointer",
+                    filter: isLocked ? "grayscale(100%)" : "none",
+                  }}
+                >
+                  <div
+                    className="course-card-image"
+                    style={{
+                      background: isLocked
+                        ? "#95a5a6"
+                        : courseColors[index % courseColors.length],
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "72px",
+                      fontWeight: "800",
+                      color: "white",
+                      position: "relative",
+                    }}
+                  >
+                    {isLocked ? "🔒" : course.title.charAt(0).toUpperCase()}
+    
+                    {/* LEVEL BADGE */}
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: "10px",
+                        right: "10px",
+                        fontSize: "14px",
+                        background: "rgba(0,0,0,0.5)",
+                        padding: "2px 8px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {course.subjectLevel || "H1"}
+                    </span>
+                  </div>
+                  <div className="course-card-content">
+                    {isEnrolled && (
+                      <span
+                        style={{
+                          backgroundColor: "#4cd137",
+                          color: "white",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        ENROLLED
+                      </span>
+                    )}
+                    {isLocked && (
+                      <span
+                        style={{
+                          backgroundColor: "#e74c3c",
+                          color: "white",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          marginLeft: isEnrolled ? "5px" : "0",
+                        }}
+                      >
+                        LOCKED
+                      </span>
+                    )}
+                    <h3>{course.title}</h3>
+                    <p style={{ fontSize: "14px", color: "#666" }}>
+                      Instructor: {course.instructorName}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+          }
+          </div>
+          )
+        }
       </div>
 
       {isModalOpen && selectedCourse && (
