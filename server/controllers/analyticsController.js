@@ -1,58 +1,52 @@
 const db = require("../config/db");
 
 class AnalyticsController {
-  async getStudentRiskAnalysis(req, res, next) {
-    try {
-      const { studentId, courseId, assessmentId } = req.body;
+    async getStudentRiskAnalysis(req, res, next) {
+        try {
+            const { studentId, courseId, assessmentId, type } = req.body;
+            const docId = `progress_${studentId}_${courseId}`;
+            const doc = await db.collection("grades").doc(docId).get();
 
-      // 1. DIRECT FETCH using the specific Doc ID format
-      // Format: progress_HCU7..._4qV8...
-      const docId = `progress_${studentId}_${courseId}`;
-      const docRef = db.collection("grades").doc(docId);
-      const doc = await docRef.get();
+            // If no record, return a 200 with an empty state instead of a 404 
+            // This prevents the frontend "Response not ok" error
+            if (!doc.exists) {
+            return res.status(200).json({ 
+                success: false, 
+                message: "No data available yet.",
+                data: { riskLevel: "N/A", scoreAvg: 0, trendValue: 0, recommendation: "Complete an assessment to see analysis." }
+            });
+            }
 
-      if (!doc.exists) {
-        return res
-          .status(404)
-          .json({
-            message: "No progress record found for this student in this course",
-          });
-      }
+            const resultsMap = doc.data().results || {};
 
-      const data = doc.data();
-      const resultsMap = data.results || {};
+            // FIXED SORTING: Get keys, sort them numerically, then map to scores
+            const scores = Object.keys(resultsMap)
+            .filter(key => resultsMap[key].assessmentId === assessmentId)
+            .sort((a, b) => parseInt(a) - parseInt(b)) // Sorts "0", "1", "2" correctly
+            .map(key => parseFloat(resultsMap[key].score));
 
-      // 2. EXTRACT & SORT SCORES
-      // We filter by assessmentId because one 'progress' doc contains multiple different quizzes
-      const scores = Object.keys(resultsMap)
-        .map((key) => resultsMap[key])
-        .filter((attempt) => attempt.assessmentId === assessmentId)
-        .sort((a, b) => parseInt(a) - parseInt(b)) // Sort by attempt number (0, 1, 2...)
-        .map((attempt) => parseFloat(attempt.score));
+            if (scores.length === 0) {
+            return res.status(200).json({ 
+                success: false, 
+                message: "No attempts found for this quiz.",
+                data: { riskLevel: "N/A", scoreAvg: 0, trendValue: 0 }
+            });
+            }
 
-      if (scores.length === 0) {
-        return res
-          .status(404)
-          .json({ message: "No attempts found for this specific assessment" });
-      }
+            const pythonResponse = await fetch("http://127.0.0.1:8000/predict-risk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scores, attendance: 85.0, type: type }),
+            });
 
-      // 3. CALL PYTHON AI SERVICE
-      const pythonResponse = await fetch("http://127.0.0.1:8000/predict-risk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scores: scores,
-          attendance: 85.0,
-        }),
-      });
+            const prediction = await pythonResponse.json();
+            res.status(200).json({ success: true, data:{ ...prediction, history: scores } });
 
-      const prediction = await pythonResponse.json();
-      res.status(200).json({ success: true, data: prediction });
-    } catch (error) {
-      console.error("Fetch Error:", error);
-      next(error);
+        } catch (error) {
+            console.error("Analysis Controller Error:", error);
+            res.status(500).json({ success: false, message: "Internal Server Error" });
+        }
     }
-  }
 }
 
 module.exports = new AnalyticsController();

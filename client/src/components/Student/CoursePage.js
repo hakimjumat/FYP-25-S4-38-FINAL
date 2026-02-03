@@ -4,6 +4,7 @@ import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
 import "../../CSS/CourseEditorPage.css";
 import "../../CSS/CoursePage.css";
+import RiskPredictor from "./RiskPredictor";
 
 const courseColors = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#A8E6CF", "#FFB347"];
 
@@ -34,6 +35,9 @@ function CoursePage() {
   const [searchVal, setSV] = useState("");
   const [foundCourse, setFC] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
+  const [analysisTarget, setAnalysisTarget] = useState({ assessmentId: null, title: "", type: "" });
+
 
   // 1. Fetch Courses
   const fetchCourses = async () => {
@@ -50,6 +54,12 @@ function CoursePage() {
       setLoading(false);
     }
   };
+
+  const openAnalysis = (assessmentId, title, type) => {
+      setAnalysisTarget({ assessmentId, title, type });
+      setAnalysisModalOpen(true);
+  };
+
 
   useEffect(() => {
     if (user) fetchCourses();
@@ -706,49 +716,92 @@ function CoursePage() {
 
               {/* === ASSESSMENTS TAB === */}
               {activeTab === "assessments" && (
+                // <>
+                //   <h3>Assessments</h3>
+                //   {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+                //     <div className="file-list student-file-list">
+                //       {selectedCourse.content
+                //         ?.filter((f) => f.type === "quiz" || f.type === "test")
+                //         .map((file) => (
+                //           <div key={file.id} className="file-item">
+                //             <p>{file.title}</p>
+                //             <button
+                //               onClick={() =>
+                //                 handleContentClick(file.id, "quiz")
+                //               }
+                //             >
+                //               Start
+                //             </button>
+                //             {/* 2. NEW: AI Analysis Button */}
+                //             <button 
+                //             onClick={() => openAnalysis(file.id, file.title)} // New handler
+                //             style={{ 
+                //               backgroundColor: '#6c5ce7', 
+                //               color: 'white',
+                //               border: 'none',
+                //               padding: '5px 10px',
+                //               borderRadius: '4px',
+                //               cursor: 'pointer',
+                //               marginLeft: '10px'
+                //             }}
+                //           >
+
+                //               📊 Analyze Progress
+                //             </button>
+                //           </div>
+                //         ))}
+                //       {!selectedCourse.content?.some(
+                //         (f) => f.type === "quiz" || f.type === "test",
+                //       ) && <p>No assessments in this course.</p>}
+                //     </div>
+                //   ) : (
+                //     <p className="locked-text">Enroll to unlock assessments.</p>
+                //   )}
+                // </>
                 <>
-                  <h3>Assessments</h3>
-                  {selectedCourse.enrolledStudents?.includes(user.uid) ? (
+                    {/* SECTION 1: QUIZZES */}
+                    <h3>Daily Quizzes</h3>
                     <div className="file-list student-file-list">
-                      {selectedCourse.content
-                        ?.filter((f) => f.type === "quiz" || f.type === "test")
-                        .map((file) => (
-                          <div key={file.id} className="file-item">
-                            <p>{file.title}</p>
-                            <button
-                              onClick={() =>
-                                handleContentClick(file.id, "quiz")
-                              }
-                            >
-                              Start
-                            </button>
-                            {/* 2. NEW: AI Analysis Button */}
-                            <button
-                              onClick={() =>
-                                navigate(
-                                  `/analytics/${selectedCourse.id}/${file.id}`,
-                                )
-                              }
-                              style={{
-                                backgroundColor: "#6c5ce7",
-                                color: "white",
-                                border: "none",
-                                padding: "5px 10px",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                              }}
-                            >
-                              📊 Analyze Progress
-                            </button>
-                          </div>
+                        {selectedCourse.content?.filter(f => f.type === "quiz").map((file) => (
+                            <div key={file.id} className="file-item">
+                                <p>📝 {file.title}</p>
+
+                                    <button onClick={() => handleContentClick(file.id, "quiz")}>Start</button>
+                                    <button onClick={() => openAnalysis(file.id, file.title, "quiz")} style={{ backgroundColor: '#6c5ce7', 
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        marginLeft: '10px'
+                                    }}>
+                                          📊 Analysis
+                                    </button>
+
+                            </div>
                         ))}
-                      {!selectedCourse.content?.some(
-                        (f) => f.type === "quiz" || f.type === "test",
-                      ) && <p>No assessments in this course.</p>}
                     </div>
-                  ) : (
-                    <p className="locked-text">Enroll to unlock assessments.</p>
-                  )}
+
+                    {/* SECTION 2: WEIGHTED TESTS */}
+                    <h3>Weighted Tests</h3>
+                    <div className="file-list student-file-list">
+                        {selectedCourse.content?.filter(f => f.type === "test" || f.type === "weighted").map((file) => (
+                            <div key={file.id} className="file-item">
+                                <p>🏆 {file.title}</p>
+                                    <button onClick={() => handleContentClick(file.id, "test")}>Start Test</button>
+                                    <button onClick={() => openAnalysis(file.id, file.title, "test")} style={{ backgroundColor: '#6c5ce7', 
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '5px 10px',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        marginLeft: '10px'
+                                    }}>
+                                          📊 Analysis
+                                    </button>
+                            </div>
+                        ))}
+                    </div>
                 </>
               )}
 
@@ -837,6 +890,35 @@ function CoursePage() {
                 onClick={() => setIsModalOpen(false)}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {analysisModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 2000 }}>
+          <div className="course-modal-box" style={{ maxWidth: '450px', textAlign: 'center' }}>
+            <div className="course-modal-header">
+              <h2>Performance Analysis</h2>
+              <p style={{ color: '#666' }}>{analysisTarget.title}</p>
+            </div>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+              <RiskPredictor 
+                courseId={selectedCourse.id} 
+                assessmentId={analysisTarget.assessmentId} 
+                studentId={user.uid} 
+                type={analysisTarget.type}
+              />
+            </div>
+
+            <div className="course-modal-footer">
+              <button 
+                className="modal-btn" 
+                onClick={() => setAnalysisModalOpen(false)}
+                style={{ width: '100%' }}
+              >
+                Close Analysis
               </button>
             </div>
           </div>
