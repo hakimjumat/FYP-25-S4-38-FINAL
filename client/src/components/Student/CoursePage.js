@@ -290,9 +290,9 @@ function CoursePage() {
         }
       </div>
 
-      <div className="courses-grid">
+      <div>
         {isSearching === false ? (
-            <div>
+            <div className="courses-grid">
             {sortedCourses.map((course, index) => {
               const isEnrolled = course.enrolledStudents?.includes(user.uid);
               const isLocked = course.isLocked; //flag from server
@@ -380,9 +380,7 @@ function CoursePage() {
             })}
             </div>
           ) : (
-            <div>
-            {
-              <div>
+            <div className="courses-grid">
               {foundCourse.map((course, index) => {
               const isEnrolled = course.enrolledStudents?.includes(user.uid);
               const isLocked = course.isLocked; //flag from server
@@ -469,8 +467,6 @@ function CoursePage() {
               );
             })}
             </div>
-          }
-          </div>
           )
         }
       </div>
