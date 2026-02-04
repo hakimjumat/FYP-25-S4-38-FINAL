@@ -31,6 +31,16 @@ class StatsRequest(BaseModel):
     scores: List[float]
     student_id: Optional[str] = "unknown"
 
+class StudentPerformance(BaseModel):
+    studentId: str
+    studentName: str
+    averageScore: float
+    trend: Optional[float] = 0.0
+
+class InstructorStatsRequest(BaseModel):
+    students: List[StudentPerformance]
+    threshold: Optional[float] = 50.0
+
 @app.post("/predict-risk")
 async def predict_risk(data: RiskRequest):
     # 1. Handle Empty Data
@@ -119,3 +129,46 @@ def get_overall_stats(data: StatsRequest):
 
     return return_results
 
+@app.post("/instructor-course-report")
+def get_instructor_course_report(data: InstructorStatsRequest):
+    if not data.students:
+        return {"success": False, "message": "No data", "report": {}}
+    
+    total_students = len(data.students)
+    avg_scores = [s.averageScore for s in data.students]
+    overall_avg = sum(avg_scores) / total_students
+    
+    bottom_quartile = np.percentile(avg_scores, 25) if total_students > 0 else 0
+
+    student_summaries = []
+    at_risk_count = 0
+
+    for student in data.students:
+        # Define "Critical" as failing score OR a sharp downward trend
+        is_critical = student.averageScore < data.threshold or student.trend < -15
+        
+        if is_critical:
+            at_risk_count += 1
+            
+        student_summaries.append({
+            "id": student.studentId,
+            "name": student.studentName,
+            "score": round(student.averageScore, 2),
+            "trend": round(student.trend, 2),
+            # 'Critical' students get the priority label, others are 'Normal'
+            "priority": "Critical" if is_critical else "Normal" 
+        })
+
+    # Sort so the struggling/critical students appear at the top
+    student_summaries.sort(key=lambda x: (x["priority"] != "Critical", x["score"]))
+
+    return {
+        "success": True,
+        "report": {
+            "total_students": total_students,
+            "overall_average_score": round(overall_avg, 2),
+            "students_at_risk": at_risk_count, # Corrected count
+            "bottom_quartile_score": round(bottom_quartile, 2)
+        },
+        "weaker_students": student_summaries # Now contains the whole class
+    }

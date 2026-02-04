@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../../auth/authContext";
 import { authFetch } from "../../services/api";
-import { storage } from "../../firebase";
+import { auth, storage } from "../../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import "../../CSS/CourseEditorPage.css";
 
@@ -10,6 +10,8 @@ import { Link, resolvePath, useNavigate, useLocation } from "react-router-dom";
 // CHECK THIS PATH: Ensure badgeConfig.js is actually in the 'services' folder.
 // If it is in 'config', change this to: "../../config/badgeConfig"
 import BADGE_LIBRARY from "../../services/badgeConfig.js";
+
+import CourseReport from "./CourseReport";
 
 const courseColors = ["#FF6B6B", "#4ECDC4", "#FFE66D", "#A8E6CF", "#FFB347"];
 
@@ -49,6 +51,9 @@ function CourseEditorPage() {
   const [announcementContent, setAnnouncementContent] = useState("");
 
   const [testGradeArray, setTestGradeArray] = useState([]);
+
+  // Analysis state
+  const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
 
   // === DATA FETCHING ===
   const fetchCourses = async () => {
@@ -519,7 +524,7 @@ function CourseEditorPage() {
             <button className="dash-btn" onClick={handleViewStudents}>
               👥 View Students
             </button>
-            <button className="dash-btn">📊 Analyze Data</button>
+            <button className="dash-btn" onClick={() => setIsAnalysisModalOpen(true)}>📊 Analyze Data</button>
             <button className="dash-btn" onClick={handleGradeTests}>
               📊 Grade Tests
             </button>
@@ -1253,6 +1258,14 @@ function CourseEditorPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Analysis Modal */}
+      {isAnalysisModalOpen && (
+        <CourseReport
+          courseId={selectedCourse.id}
+          onClose={() => setIsAnalysisModalOpen(false)}
+        />
       )}
     </div>
   );
