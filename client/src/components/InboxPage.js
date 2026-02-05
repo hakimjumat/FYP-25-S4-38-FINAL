@@ -86,6 +86,7 @@ function InboxPage() {
             setSendMessage(false);
             setIsModalOpen(false);
             fetchMessages(); // Refresh messages
+            alert("Message Sent");
         }
     }
 
