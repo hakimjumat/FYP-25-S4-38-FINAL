@@ -376,7 +376,10 @@ function InternshipPostingPage() {
                   <tr>
                     <th>Student Name</th>
                     <th>Email</th>
-                    <th>Avg Score</th>
+                    {
+                      //<th>Avg Score</th>
+                    }
+                    
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -386,9 +389,11 @@ function InternshipPostingPage() {
                       <tr key={idx}>
                         <td>{student.displayName}</td>
                         <td>{student.email}</td>
-                        <td style={{ fontWeight: "bold", color: "#4cd137" }}>
-                          {student.averageScore}%
-                        </td>
+                        {
+                          //<td style={{ fontWeight: "bold", color: "#4cd137" }}>
+                          //  {student.averageScore}%
+                          //</td>
+                        }
                         <td>
                           <span className="badge badge-active">Qualified</span>
                         </td>
