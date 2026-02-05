@@ -360,6 +360,7 @@ class StudentController {
       const uid = req.user.uid;
       // harcoding points on server side for security (daily login = +10)
       const result = await gamificationModel.claimDailyReward(uid, 10);
+      await gamificationModel.changeGamificationCurrency(uid, 10);
 
       if (!result.success) {
         return res.status(400).json(result);
