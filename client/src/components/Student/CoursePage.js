@@ -245,7 +245,7 @@ function CoursePage() {
     }
 
     // 3. Actual Action (Open Link or Quiz)
-    if (type === "quiz") {
+    if (type === "quiz" || type === "test" || type === "weighted") {
       navigate(`/student/course/assessment/${contentId}`);
     } else {
       window.open(url, "_blank");
