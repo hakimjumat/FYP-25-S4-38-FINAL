@@ -23,7 +23,7 @@ class AnalyticsController {
             const scores = Object.keys(resultsMap)
             .filter(key => resultsMap[key].assessmentId === assessmentId)
             .sort((a, b) => parseInt(a) - parseInt(b)) // Sorts "0", "1", "2" correctly
-            .map(key => parseFloat(resultsMap[key].score));
+            .map(key => parseFloat((resultsMap[key].score/resultsMap[key].answers.length)* 10));
 
             if (scores.length === 0) {
             return res.status(200).json({ 
@@ -65,7 +65,7 @@ class AnalyticsController {
             const resultsMap = doc.data().results || {};
 
             const allResults = Object.values(resultsMap)
-                .map(item => parseFloat(item.score))
+                .map(item => parseFloat((item.score/item.answers.length) * 10))
                 .filter(score => !isNaN(score));
 
             if (allResults.length === 0) {
@@ -138,7 +138,13 @@ class AnalyticsController {
                     }
 
                     if (assessmentTypeCache[aId] === filterType) {
-                        filteredScores.push(parseFloat(result.score));
+                        //filteredScores.push(parseFloat((result.score/(result.answers.length * 10))* 100));
+                        let y = result.answers.length;
+                        if(y === 0)
+                            y = 1;
+                        let x = parseFloat((result.score/(y * 10))* 100);
+                        filteredScores.push(parseFloat(x));
+                        //filteredScores.push(parseFloat(result.score));
                     }
                 }
 
