@@ -363,7 +363,7 @@ function TestGradingPage() {
                 questionList[currQnInd].type === "mcq" && (
                     <div>
                         <p>{questionList[currQnInd].text}</p>
-                        <p>Student Answer: {questionList[currQnInd].options[testAttemptData.questions.answers[currQnInd].selected]}</p>
+                        <p>Student Answer: {questionList[currQnInd].options[testAttemptData.questions.answers[currQnInd]?.selected]}</p>
                         <div>
                             <label>Correct</label>
                             <input type="radio" name="grading" onChange={() => handleRadioButtonChange("correct")}/>
@@ -379,7 +379,7 @@ function TestGradingPage() {
                 questionList[currQnInd].type === "short_answer" && (
                     <div>
                         <p>{questionList[currQnInd].text}</p>
-                        <p>Student Answer: {testAttemptData.questions.answers[currQnInd].selected}</p>
+                        <p>Student Answer: {testAttemptData.questions.answers[currQnInd]?.selected}</p>
                         <p>Model Answer: {questionList[currQnInd].modelAnswer}</p>
                         <div>
                             <label>Correct</label>
