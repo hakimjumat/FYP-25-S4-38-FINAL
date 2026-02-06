@@ -866,55 +866,111 @@ function CourseEditorPage() {
             )}
 
             {modalType === "testlist" && (
-              <div>
-                <h2>Grade Course Tests</h2>
-                <div>
-                  {selectedCourse.content.map((file) => (
-                    <div>
-                      {file.type === "test" ? (
-                        <div>
-                          <p>{file.title}</p>
-                          {
-                            //test data goes here
-                            testGradeArray.map((docs) => (
-                              <div>
-                                {file.id === docs.test_ID ? (
-                                  <div>
-                                    {enrolledStudents.map((student) => (
-                                      <div>
-                                        {student.uid === docs.user && (
-                                          <label>{student.displayName}</label>
-                                        )}
-                                      </div>
-                                    ))}
-                                    <button
-                                      onClick={() =>
-                                        navigate(
-                                          `/instructor/course/testgrading/${docs.id}`,
-                                        )
-                                      }
-                                    >
-                                      Grade
-                                    </button>
+            <div>
+              <h2 style={{ 
+                textAlign: "center", 
+                color: "#2c3e50",
+                marginBottom: "24px",
+                fontSize: "24px",
+                fontWeight: "700"
+              }}>
+                Grade Course Tests
+              </h2>
+              
+              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                {selectedCourse.content.map((file) => (
+                  <div key={file.id}>
+                    {file.type === "test" && (
+                      <div style={{
+                        backgroundColor: "#f8f9fa",
+                        padding: "20px",
+                        borderRadius: "12px",
+                        marginBottom: "16px",
+                        border: "2px solid #e0e0e0"
+                      }}>
+                        <h3 style={{ 
+                          margin: "0 0 16px 0",
+                          color: "#2c3e50",
+                          fontSize: "18px",
+                          fontWeight: "600"
+                        }}>
+                          {file.title}
+                        </h3>
+                        
+                        {testGradeArray.map((docs) => (
+                          <div key={docs.id}>
+                            {file.id === docs.test_ID && (
+                              <div style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                backgroundColor: "white",
+                                padding: "12px 16px",
+                                borderRadius: "8px",
+                                marginBottom: "8px",
+                                border: "1px solid #e0e0e0"
+                              }}>
+                                {enrolledStudents.map((student) => (
+                                  <div key={student.uid}>
+                                    {student.uid === docs.user && (
+                                      <span style={{
+                                        fontSize: "15px",
+                                        fontWeight: "600",
+                                        color: "#2c3e50"
+                                      }}>
+                                        {student.displayName}
+                                      </span>
+                                    )}
                                   </div>
-                                ) : (
-                                  <div></div>
-                                )}
+                                ))}
+                                
+                                <button
+                                  onClick={() => navigate(`/instructor/course/testgrading/${docs.id}`)}
+                                  style={{
+                                    backgroundColor: "#4cd137",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "8px 20px",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s"
+                                  }}
+                                  onMouseOver={(e) => e.target.style.backgroundColor = "#44bd32"}
+                                  onMouseOut={(e) => e.target.style.backgroundColor = "#4cd137"}
+                                >
+                                  Grade
+                                </button>
                               </div>
-                            ))
-                          }
-                        </div>
-                      ) : (
-                        <div></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <button onClick={closeModal} className="text-btn">
-                  Close
-                </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+              
+              <button 
+                onClick={closeModal} 
+                style={{
+                  width: "100%",
+                  marginTop: "20px",
+                  padding: "12px",
+                  backgroundColor: "#2c3e50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "15px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                Close
+              </button>
+            </div>
+          )}          
 
             {/* 4. NEW: Modal View for Assessment Details */}
             {modalType === "view_assessment_details" && viewingAssessment && (
