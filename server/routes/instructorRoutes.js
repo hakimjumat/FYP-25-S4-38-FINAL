@@ -60,4 +60,6 @@ router.delete("/delete-gradeditem/:attemptId", instructorController.deleteGraded
 router.post("/fetchsinglestudentgrade", instructorController.FetchSingleGrade);
 router.post("/updateTotalGrade", instructorController.calculateTotalGrade);
 
+router.get('/courses/:courseId/reviews', instructorController.getReviewsforCourse);
+
 module.exports = router;

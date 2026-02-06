@@ -52,6 +52,9 @@ function CourseEditorPage() {
 
   const [testGradeArray, setTestGradeArray] = useState([]);
 
+  // Reviews
+  const [reviews, setReviews] = useState([]);
+
   // Analysis state
   const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
 
@@ -155,6 +158,26 @@ function CourseEditorPage() {
     setModalType("course_announcement");
     PullStudentsForAnnouncement();
     setIsModalOpen(true);
+  };
+
+  const openReviewsModal = async () => {
+    if(!selectedCourse) return;
+    setModalLoading(true);
+    try{
+      const res = await authFetch(`http://localhost:5000/api/instructors/courses/${selectedCourse.id}/reviews`,
+      {},
+      user);
+      if(res.success) {
+        setReviews(res.data);
+        setModalType("course_reviews");
+        setIsModalOpen(true);
+      }
+    } catch(err) {
+      console.error("Error fetching reviews:", err);
+      alert("Failed to fetch reviews");
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -527,6 +550,9 @@ function CourseEditorPage() {
             <button className="dash-btn" onClick={() => setIsAnalysisModalOpen(true)}>📊 Analyze Data</button>
             <button className="dash-btn" onClick={handleGradeTests}>
               📊 Grade Tests
+            </button>
+            <button className="dash-btn" onClick={openReviewsModal}>
+              ⭐ View Course Reviews
             </button>
           </div>
 
@@ -1086,6 +1112,44 @@ function CourseEditorPage() {
                   </div>
                 </div>
               )}
+    
+          {/* 7. [NEW] REVIEWS MODAL */}
+          {modalType === "course_reviews" && (
+            <div>
+              <h2>Course Reviews</h2>
+              <div className="file-list" style={{ maxHeight: "400px", overflowY: "auto", textAlign: "left" }}>
+                {reviews.length > 0 ? (
+                  reviews.map((review) => (
+                    <div key={review.id} style={{ 
+                      padding: "15px", 
+                      borderBottom: "1px solid #eee",
+                      backgroundColor: "#f9f9f9",
+                      borderRadius: "8px",
+                      marginBottom: "10px"
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                        <strong>{review.studentName || "Anonymous Student"}</strong>
+                        <span style={{ color: "#f1c40f" }}>
+                          {"⭐".repeat(review.rating || 5)}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: "14px", margin: "5px 0" }}>{review.comment}</p>
+                      <small style={{ color: "#888" }}>
+                        {review.createdAt?.seconds 
+                          ? new Date(review.createdAt.seconds * 1000).toLocaleDateString()
+                          : "Recently"}
+                      </small>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ textAlign: "center", padding: "20px" }}>No reviews yet for this course.</p>
+                )}
+              </div>
+              <button onClick={closeModal} className="modal-btn" style={{ marginTop: "15px" }}>
+                Close
+              </button>
+            </div>
+          )}
           </div>
         </div>
       )}

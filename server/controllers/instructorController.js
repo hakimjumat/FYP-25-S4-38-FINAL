@@ -7,6 +7,7 @@ const courseModel = require("../models/courseModel");
 const assessmentModel = require("../models/assessmentModel");
 const testAttemptModel = require("../models/testAttemptModel");
 const GradeModel = require("../models/gradeModel");
+const reviewModel = require("../models/reviewModel.js");
 
 class InstructorController {
   // [NEW] Get full details of a specific assessment
@@ -430,6 +431,19 @@ class InstructorController {
       res.status(200).json({
         success: true,
         data: data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReviewsforCourse(req, res, next) {
+    try {
+      const { courseId } = req.params;
+      const reviews = await reviewModel.getReviewsByCourseId(courseId);
+      res.status(200).json({
+        success: true,
+        data: reviews,
       });
     } catch (error) {
       next(error);
