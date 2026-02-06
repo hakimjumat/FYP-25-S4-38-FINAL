@@ -257,10 +257,12 @@ function AssessmentPage() {
   }
 
   function markAssessment() {
+    let totalscore = 0;
     for (let i = 0; i < userAnswerArray.length; i++) {
       let correct = false;
       if (userAnswerArray[i] === questionList[i].correct.toString()) {
         correct = true;
+        totalscore+= 10;
       }
       let singleQnData = {
         qId: i,
@@ -272,7 +274,7 @@ function AssessmentPage() {
     }
     setAttemptData({
       assessmentId: assessmentId,
-      score: 0,
+      score: totalscore,
       timeTaken: eTotalTime,
       answers: qngradeData,
     });
