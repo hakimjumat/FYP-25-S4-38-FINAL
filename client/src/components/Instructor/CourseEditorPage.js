@@ -1133,7 +1133,7 @@ function CourseEditorPage() {
                           {"⭐".repeat(review.rating || 5)}
                         </span>
                       </div>
-                      <p style={{ fontSize: "14px", margin: "5px 0" }}>{review.comment}</p>
+                      <p style={{ fontSize: "14px", margin: "5px 0" }}>{review.description}</p>
                       <small style={{ color: "#888" }}>
                         {review.createdAt?.seconds 
                           ? new Date(review.createdAt.seconds * 1000).toLocaleDateString()
