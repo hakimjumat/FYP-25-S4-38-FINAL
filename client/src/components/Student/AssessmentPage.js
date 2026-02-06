@@ -212,49 +212,52 @@ function AssessmentPage() {
   };
 
   function submitAss() {
-    let x = userAnswerArray.length;
-    if (x === questionIndex) {
-      let z = [];
-      if (userAnswerArray.length > 0) z = userAnswerArray;
-      z.push(getAnswer());
-      setUserAns(z);
-
-      let aa = [];
-      let gh = eTime;
-      if (elapsedtimeperQn.length > 0) {
-        aa = elapsedtimeperQn;
-        for (let x = 0; x < elapsedtimeperQn.length; x++) gh -= aa[x];
-      }
-      aa.push(gh);
-      setETQ(aa);
-      elapsedtime = 0;
-      setSelectedValue("");
+    let finalAnswers = [...userAnswerArray];
+    if (finalAnswers.length === questionIndex) {
+        finalAnswers.push(getAnswer());
     }
+    
+    let finalTimings = [...elapsedtimeperQn];
+    let gh = eTime;
+    if (elapsedtimeperQn.length > 0) {
+        for (let x = 0; x < elapsedtimeperQn.length; x++) gh -= finalTimings[x];
+    }
+    finalTimings.push(gh);
+    
+    setUserAns(finalAnswers);
+    setETQ(finalTimings);
+    
     if (wholeAssignment.type === "quiz") {
         setRequiremarking(true);
         clearInterval(timerInterval);
     } else {
-        formatDataForTest();
+        // Format test data with ALL answers
+        formatDataForTest(finalAnswers, finalTimings);
         setsubmitTest(true);
         clearInterval(timerInterval);
     }
-  }
+}
 
   function getAnswer() {
     return selectedValue;
   }
 
-  function formatDataForTest() {
-    for (let i = 0; i < userAnswerArray.length; i++) {
-      let singleQnData = {
+  function formatDataForTest(answers, timings) {
+    const formattedAnswers = answers.map((answer, i) => ({
         qId: i,
-        timeSpent: elapsedtimeperQn[i],
-        selected: userAnswerArray[i],
-      };
-      qngradeData.push(singleQnData);
-    }
-    setAttemptData({assessmentId: assessmentId,score: 0, timeTaken: eTotalTime, answers: qngradeData})
-  }
+        timeSpent: timings[i] || 0,
+        selected: answer,
+    }));
+    
+    const submissionData = {
+        assessmentId: assessmentId,
+        score: 0,
+        timeTaken: eTotalTime,
+        answers: formattedAnswers, 
+    };
+    
+    setAttemptData(submissionData);
+}
 
   function markAssessment() {
     let totalscore = 0;

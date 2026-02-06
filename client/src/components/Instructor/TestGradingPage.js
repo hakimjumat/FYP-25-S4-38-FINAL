@@ -130,10 +130,14 @@ function TestGradingPage() {
     }
 
     function updatedata(){
-        let changeddata = datathatwillbesent;
+        let changeddata = {...datathatwillbesent};  
+        
+        changeddata.answers = [...changeddata.answers];
+        changeddata.answers[currQnInd] = {...changeddata.answers[currQnInd]};
+        
         changeddata.answers[currQnInd].isCorrect = qnCW;
         if(qnCW === true)
-            changeddata.score = changeddata.score + 10;
+            changeddata.score = (changeddata.score || 0) + 10;
         setDTWBS(changeddata);
     }
 
@@ -360,39 +364,45 @@ function TestGradingPage() {
             <h3>Grading Page</h3>
             
             {
-                questionList[currQnInd].type === "mcq" && (
-                    <div>
-                        <p>{questionList[currQnInd].text}</p>
-                        <p>Student Answer: {questionList[currQnInd].options[testAttemptData.questions.answers[currQnInd]?.selected]}</p>
-                        <div>
-                            <label>Correct</label>
-                            <input type="radio" name="grading" onChange={() => handleRadioButtonChange("correct")}/>
-                        </div>
-                        <div>
-                            <label>Wrong</label>
-                            <input type="radio" name="grading" onChange={() => handleRadioButtonChange("wrong")}/>
-                        </div>
-                    </div>
-                )
-            }
-            {
-                questionList[currQnInd].type === "short_answer" && (
-                    <div>
-                        <p>{questionList[currQnInd].text}</p>
-                        <p>Student Answer: {testAttemptData.questions.answers[currQnInd]?.selected}</p>
-                        <p>Model Answer: {questionList[currQnInd].modelAnswer}</p>
-                        <div>
-                            <label>Correct</label>
-                            <input type="radio" name="grading" onChange={() => handleRadioButtonChange("correct")}/>
-                        </div>
-                        <div>
-                            <label>Wrong</label>
-                            <input type="radio" name="grading" onChange={() => handleRadioButtonChange("wrong")}/>
-                        </div>
-                    </div>
-                    
-                )
-            }
+    questionList[currQnInd].type === "mcq" && (
+        <div>
+            <p>{questionList[currQnInd].text}</p>
+            <p>Student Answer: {
+                datathatwillbesent?.answers?.[currQnInd]?.selected !== undefined
+                    ? questionList[currQnInd].options[datathatwillbesent.answers[currQnInd].selected]
+                    : "No answer submitted"
+            }</p>
+            <div>
+                <label>Correct</label>
+                <input type="radio" name="grading" onChange={() => handleRadioButtonChange("correct")}/>
+            </div>
+            <div>
+                <label>Wrong</label>
+                <input type="radio" name="grading" onChange={() => handleRadioButtonChange("wrong")}/>
+            </div>
+        </div>
+    )
+}
+{
+    questionList[currQnInd].type === "short_answer" && (
+        <div>
+            <p>{questionList[currQnInd].text}</p>
+            <p>Student Answer: {
+                datathatwillbesent?.answers?.[currQnInd]?.selected || "No answer submitted"
+            }</p>
+            <p>Model Answer: {questionList[currQnInd].modelAnswer}</p>
+            <div>
+                <label>Correct</label>
+                <input type="radio" name="grading" onChange={() => handleRadioButtonChange("correct")}/>
+            </div>
+            <div>
+                <label>Wrong</label>
+                <input type="radio" name="grading" onChange={() => handleRadioButtonChange("wrong")}/>
+            </div>
+        </div>
+        
+    )
+}
             
             {
                 (currQnInd+1) === questionList.length ? (
