@@ -28,6 +28,8 @@ function TestGradingPage() {
     const [datathatwillbesent, setDTWBS] = useState(null);
     const [courseData, setCD] = useState(null);
 
+    const [boolx, setBX] = useState(false);
+
     const [qnCW, setqnCW] = useState(false);
 
     const [currQnInd, setCurrQnInd] = useState(0);
@@ -141,8 +143,14 @@ function TestGradingPage() {
         setDTWBS(changeddata);
     }
 
-    function submitdatatodb() {
+    function submitdatatodbpt1() {
         updatedata();
+        
+        setBX(true);
+    }
+
+    function submitdatatodbpt2() {
+        
         generateWeightedGrade();
         setPTSDB(true);
     }
@@ -341,6 +349,11 @@ function TestGradingPage() {
         }
     }
 
+    if(boolx === true){
+        submitdatatodbpt2();
+        setBX(false);
+    }
+
     if(preparetosendDB === true && sendingtoDB === false){
         sendStudentGrade();
     }
@@ -406,7 +419,7 @@ function TestGradingPage() {
             
             {
                 (currQnInd+1) === questionList.length ? (
-                    <button onClick={submitdatatodb}>Save</button>
+                    <button onClick={submitdatatodbpt1}>Save</button>
                 ) : (
                     <button onClick={incrementQn}>Next</button>
                 )
