@@ -414,9 +414,14 @@ function CourseEditorPage() {
   };
 
   function forloopAnnouncement() {
-    enrolledStudents.forEach((element) => {
-      handleSendAnnouncement(element.uid);
-    });
+    if(announcementContent.length > 0){
+      enrolledStudents.forEach((element) => {
+        handleSendAnnouncement(element.uid);
+      });
+    }
+    else{
+      alert("Nothing to send!");
+    }
   }
 
   const handleSendAnnouncement = async (msgTarget) => {
