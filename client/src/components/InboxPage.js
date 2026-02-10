@@ -125,15 +125,19 @@ function InboxPage() {
 
     // Filter messages based on active tab
     const getFilteredMessages = () => {
-        if (activeTab === "all") {
-            return allMessages;
-        } else if (activeTab === "messages") {
-            return allMessages.filter(msg => msg.sender_user_id !== "SYSTEM_ANNOUNCEMENT");
-        } else if (activeTab === "announcement") {
-            return allMessages.filter(msg => msg.sender_user_id === "SYSTEM_ANNOUNCEMENT");
-        }
+    if (!allMessages || !Array.isArray(allMessages)) {
         return [];
-    };
+    }
+    
+    if (activeTab === "all") {
+        return allMessages;
+    } else if (activeTab === "messages") {
+        return allMessages.filter(msg => msg.sender_user_id !== "SYSTEM_ANNOUNCEMENT");
+    } else if (activeTab === "announcement") {
+        return allMessages.filter(msg => msg.sender_user_id === "SYSTEM_ANNOUNCEMENT");
+    }
+    return [];
+};
 
     const filteredMessages = getFilteredMessages();
 

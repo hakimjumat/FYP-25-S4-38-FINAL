@@ -413,11 +413,17 @@ function CourseEditorPage() {
     }
   };
 
-  function forloopAnnouncement() {
+  async function forloopAnnouncement() {
     if(announcementContent.length > 0){
-      enrolledStudents.forEach((element) => {
-        handleSendAnnouncement(element.uid);
-      });
+      setModalLoading(true);
+      
+      for(const element of enrolledStudents) {
+        await handleSendAnnouncement(element.uid);
+      }
+      
+      setModalLoading(false);
+      closeModal();
+      alert("Announcements sent to all students!");
     }
     else{
       alert("Nothing to send!");
@@ -427,10 +433,16 @@ function CourseEditorPage() {
   const handleSendAnnouncement = async (msgTarget) => {
     let y = new Date();
     let subject = selectedCourse.title + " Announcement";
+    
+    const senderName = user?.displayName || 
+                       selectedCourse?.instructorName ||
+                       user?.email?.split('@')[0] || 
+                       "Instructor";
+    
     let x = {
       sender_user_id: "SYSTEM_ANNOUNCEMENT",
       reciver_user_id: msgTarget,
-      s_name: user.displayName,
+      s_name: senderName,
       subject: subject,
       text: announcementContent,
       sent_on: y,
@@ -444,10 +456,9 @@ function CourseEditorPage() {
       );
     } catch (err) {
       console.error(err);
-      alert("Send Announcement failed");
-    } finally {
-      closeModal();
+      throw err; // Re-throw so forloopAnnouncement knows it failed
     }
+    // Do not close modal here - forloopAnnouncement handles it
   };
 
   // Drag & Drop
