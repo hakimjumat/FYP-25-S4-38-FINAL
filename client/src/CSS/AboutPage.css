@@ -1,0 +1,80 @@
+.about-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 20px;
+}
+
+.about-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.about-container h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 40px;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.about-section {
+  margin-bottom: 50px;
+}
+
+.about-section h2 {
+  color: black;
+  font-size: 28px;
+  margin-bottom: 20px;
+  border-bottom: 3px solid black;
+  padding-bottom: 10px;
+}
+
+.about-section h3 {
+  color: #2c3e50;
+  font-size: 22px;
+  margin-top: 25px;
+  margin-bottom: 15px;
+}
+
+.about-section p {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.about-section ul {
+  margin: 15px 0;
+  padding-left: 30px;
+}
+
+.about-section ul li {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.enhancement-card {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+.enhancement-card h3 {
+  color: black;
+  margin-top: 0;
+}
+
+.enhancement-card p {
+  margin-bottom: 12px;
+}
+
+.enhancement-card ul {
+  margin-top: 10px;
+}

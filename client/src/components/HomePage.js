@@ -69,14 +69,9 @@ function NavBar() {
           </Link>
         </li>
         <li>
-          <a 
-            href="https://docs.google.com/document/d/14Hh5t-G1ZWfufJmeJuozj2tNN0ZA0DexUN_9yXuVwlg/edit?usp=sharing" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
+          <Link to="/about" style={{ textDecoration: "none", color: "inherit" }}>
             About
-          </a>
+          </Link>
         </li>
         <li>Services</li>
 
