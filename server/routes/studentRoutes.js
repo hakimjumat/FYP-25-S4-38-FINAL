@@ -60,6 +60,7 @@ router.post(
 router.post("/submitAssessmentAttempt", studentController.submitAttempt);
 router.post("/submitTestAttempt", studentController.submitTestAttempt);
 router.post("/hasdonegradedtest", studentController.checkIfTestAttempted);
+router.post("/hasdoneandmarked", studentController.checkIfTestDoneAndMarked);
 
 router.post('/disable-account' , studentController.studentSelfDisabledAcc);
 

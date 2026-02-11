@@ -205,9 +205,11 @@ function RewardStorePage() {
           Transaction History
         </button>
 
-        <button className="action-btn debug-btn" onClick={debugAddCurrency}>
-           +100 Points
-        </button>
+        {
+          //<button className="action-btn debug-btn" onClick={debugAddCurrency}>
+          //  +100 Points
+          //</button>
+        }
       </div>
 
       <div className="reward-filters">

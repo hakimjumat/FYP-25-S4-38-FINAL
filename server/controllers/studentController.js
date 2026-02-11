@@ -487,6 +487,31 @@ class StudentController {
     }
   }
 
+  async checkIfTestDoneAndMarked(req, res, next){
+    try {
+      const uid = req.user.uid;
+      const assID = req.body.assID;
+
+      const outcome = await gradeModel.getSingleStudentGrade(uid,assID);
+      if(outcome === undefined){
+        res.status(200).json({
+        success: false,
+        });
+      }
+      else{
+        res.status(200).json({
+        success: true,
+        data: {
+          outcome: outcome,
+        },
+        });
+      }
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getallgradesbyCID(req, res, next) {
     try {
       const { courseId } = req.params;

@@ -58,6 +58,7 @@ function AssessmentPage() {
   };
 
   const getQuestions = async () => {
+    let x = null;
     try {
       const res = await authFetch(
         "http://localhost:5000/api/students/getcourseassessment",
@@ -68,6 +69,7 @@ function AssessmentPage() {
         for (let i = 0; i < res.data.length; i++) {
           if (res.data[i].id === assessmentId) {
             setWholeAssignment(res.data[i]);
+            x = res.data[i].courseId;
             setQuestions(res.data[i].questions);
           }
         }
@@ -75,11 +77,12 @@ function AssessmentPage() {
     } catch (error) {
       console.error("Error fetching courses:", error);
     } finally {
-      checkforprevAttempt();
+      checkforprevAttempt(x);
     }
   };
 
-  const checkforprevAttempt = async () => {
+  const checkforprevAttempt = async (cid) => {
+    let y = false;
     const res = await authFetch(
       "http://localhost:5000/api/students/hasdonegradedtest",
       { method: "POST", body: JSON.stringify({ assID: assessmentId }) },
@@ -87,9 +90,30 @@ function AssessmentPage() {
     );
     if (res.success) {
       if (res.data.outcome === false) {
-        setLoading(false);
+        
       } else {
+        y = true;
+      }
+    }
+    const res2 = await authFetch("http://localhost:5000/api/students/hasdoneandmarked",
+      { method: "POST", body: JSON.stringify({ assID: cid }) },
+      user);
+    if (res2.success) {
+      if(res2.data.outcome.results !== undefined)
+      {
+
+        res2.data.outcome.results.forEach(element => {
+          if(element.assessmentId === assessmentId)
+          {
+            y = true;
+          }
+        });
+      }
+      if(y === true){
         setPAE(true);
+      }
+      else{
+        setLoading(false);
       }
     }
   };
