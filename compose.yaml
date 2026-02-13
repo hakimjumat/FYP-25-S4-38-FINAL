@@ -1,0 +1,15 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      - ANALYTICS_SERVICE_URL=http://datamining:8000
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - datamining
+
+  datamining:
+    build: ./datamining
+    ports:
+      - "8000:8000"
