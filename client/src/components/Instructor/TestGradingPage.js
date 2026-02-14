@@ -81,8 +81,7 @@ function TestGradingPage() {
     try {
       console.log(testAttemptData.course);
       const res = await authFetch(
-        `
-                ${process.env.REACT_APP_API_URL}/instructors/getCourseById/${testAttemptData.course}`,
+        `${process.env.REACT_APP_API_URL}/instructors/getCourseById/${testAttemptData.course}`,
         { method: "GET" },
         user,
       );
